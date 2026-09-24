@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum Status {
+  AVAILABLE
+  IN_A_MEETING
+  TEACHING
+  OUT_OF_OFFICE
+}
+enum EventSource {
+  MANUAL
+  ICS_IMPORT
+}
+model Academic {
+  id String @id @default(cuid())
+  firebaseUid String @unique
+  email String
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  availability AvailabilityStatus?
+  events CalendarEvent[]
+  contact ContactInfo?
+  display DisplayAssociation?
+}
+model AvailabilityStatus {
+  academicId String @id
+  academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
+  status Status @default(OUT_OF_OFFICE)
+  expectedReturnTime DateTime?
+  customMessage String?
+  updatedAt DateTime @updatedAt
+}
+model CalendarEvent {
+  id String @id @default(cuid())
+  academicId String
+  academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
+  title String
+  startTime DateTime
+  endTime DateTime
+  source EventSource @default(MANUAL)
+  importKey String?
+  @@unique([academicId, importKey])
+  @@index([academicId, startTime, endTime])
+}
+model ContactInfo {
+  academicId String @id
+  academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
+  email String
+  phone String @default("")
+  officeLocation String @default("")
+}
+model DisplayAssociation {
+  id String @id @default(cuid())
+  academicId String @unique
+  academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
+  apiKey String @unique
+  pairedAt DateTime?
+}
