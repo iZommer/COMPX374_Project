@@ -8,9 +8,50 @@ export async function academicFor(request: Request) {
   const match = request.headers.get("authorization")?.match(/^Bearer (\S+)$/);
   if (!match) throw new HttpError(401, "Please sign in to continue.");
   const auth = adminAuth();
-  const token = await auth.verifyIdToken(match[1], true).catch(() => {
-    throw new HttpError(401, "Your session has expired. Please sign in again.");
-  });
+  const token = await auth
+    .verifyIdToken(match[1], true)
+    .catch((error: unknown) => {
+      const code = (error as { code?: unknown } | null)?.code;
+      if (code === "auth/id-token-expired")
+        throw new HttpError(
+          401,
+          "Your session has expired. Please sign in again.",
+        );
+      if (code === "auth/id-token-revoked" || code === "auth/user-not-found")
+        throw new HttpError(
+          401,
+          "Your session is no longer valid. Please sign in again.",
+        );
+      if (code === "auth/user-disabled")
+        throw new HttpError(403, "This account has been disabled.");
+      if (code === "auth/argument-error" || code === "auth/invalid-id-token")
+        throw new HttpError(
+          401,
+          "Your sign-in token could not be verified. Please sign in again.",
+        );
+      // Credential, clock, permission, and network failures are server errors,
+      // not evidence that the user's session expired. Never log the raw error.
+      const knownCodes = new Set([
+        "app/invalid-credential",
+        "auth/invalid-credential",
+        "auth/insufficient-permission",
+        "auth/internal-error",
+        "app/network-error",
+      ]);
+      console.error("[diary-api] Firebase verification unavailable", {
+        code:
+          code === 400
+            ? "credential-request-rejected"
+            : typeof code === "string" && knownCodes.has(code)
+              ? code
+              : "unknown",
+        hint: "Check the server clock, Firebase Admin credentials, permissions, and network connectivity.",
+      });
+      throw new HttpError(
+        503,
+        "The authentication service is unavailable. Please try again after the server configuration is checked.",
+      );
+    });
   if (token.firebase.sign_in_provider !== "password" || !token.email)
     throw new HttpError(403, "An email/password account is required.");
   const existing = await db.academic.findUnique({

@@ -31,4 +31,4 @@ export const POST = route(async (req) => {
     skipped: events.length - result.count,
     message: `Imported ${result.count} events; skipped ${events.length - result.count} existing events.`,
   });
-});
+}, "calendar-import");

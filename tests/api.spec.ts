@@ -58,7 +58,9 @@ describe("authorization boundary", () => {
       expect((await handler(request(path, method, undefined, ""))).status).toBe(
         401,
       );
-      mocks.verifyIdToken.mockRejectedValue(new Error("revoked"));
+      mocks.verifyIdToken.mockRejectedValue(
+        Object.assign(new Error("revoked"), { code: "auth/id-token-revoked" }),
+      );
       expect((await handler(request(path, method))).status).toBe(401);
       expect(mocks.academic.findUnique).not.toHaveBeenCalled();
     });
@@ -70,6 +72,29 @@ describe("authorization boundary", () => {
     });
     expect((await contact.GET(request("contact"))).status).toBe(403);
     expect(mocks.academic.findUnique).not.toHaveBeenCalled();
+  });
+  it("does not mislabel server credential rejection as an expired session", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      mocks.verifyIdToken.mockRejectedValue(
+        Object.assign(new Error("private error details"), { code: 400 }),
+      );
+      const response = await contact.GET(request("contact"));
+      expect(response.status).toBe(503);
+      expect((await response.json()).error).not.toContain("expired");
+      expect(mocks.academic.findUnique).not.toHaveBeenCalled();
+      expect(JSON.stringify(log.mock.calls)).not.toContain(
+        "private error details",
+      );
+    } finally {
+      log.mockRestore();
+    }
+  });
+  it("reports actual token expiry as a 401", async () => {
+    mocks.verifyIdToken.mockRejectedValue({ code: "auth/id-token-expired" });
+    const response = await contact.GET(request("contact"));
+    expect(response.status).toBe(401);
+    expect((await response.json()).error).toContain("expired");
   });
   it("scopes reads to the verified academic and enables revocation checking", async () => {
     mocks.contactInfo.findUnique.mockResolvedValue({ email: "a@example.org" });

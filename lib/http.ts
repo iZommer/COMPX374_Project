@@ -13,7 +13,10 @@ export const json = (data: unknown, status = 200) =>
     status,
     headers: { "Cache-Control": "no-store, private" },
   });
-export function route(fn: (request: Request) => Promise<Response>) {
+export function route(
+  fn: (request: Request) => Promise<Response>,
+  operation = "api",
+) {
   return async (request: Request) => {
     try {
       return await fn(request);
@@ -31,7 +34,32 @@ export function route(fn: (request: Request) => Promise<Response>) {
         );
       if (error instanceof SyntaxError)
         return json({ error: "Invalid JSON request." }, 400);
-      // Never log tokens, request bodies, calendar contents, or database connection strings.
+      // Allowlist diagnostic fields: raw errors/messages/stacks can contain
+      // database URLs, query arguments, calendar contents, or credentials.
+      const diagnostic = error as {
+        name?: unknown;
+        code?: unknown;
+        errorCode?: unknown;
+      } | null;
+      const knownTypes = new Set([
+        "PrismaClientKnownRequestError",
+        "PrismaClientUnknownRequestError",
+        "PrismaClientInitializationError",
+        "PrismaClientValidationError",
+        "PrismaClientRustPanicError",
+        "FirebaseAppError",
+        "FirebaseAuthError",
+      ]);
+      const code = diagnostic?.code ?? diagnostic?.errorCode;
+      console.error("[diary-api] Request failed", {
+        operation,
+        errorType:
+          typeof diagnostic?.name === "string" &&
+          knownTypes.has(diagnostic.name)
+            ? diagnostic.name
+            : "UnexpectedError",
+        code: typeof code === "string" && /^P\d{4}$/.test(code) ? code : null,
+      });
       return json(
         { error: "The diary service is unavailable. Please try again." },
         503,
