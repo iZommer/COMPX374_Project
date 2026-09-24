@@ -1,0 +1,95 @@
+PLAN 
+END GOAL IS MVP 
+
+NEXT.js
+Built in router 
+TailwindCSS
+
+BACKEND 
+RESTful API
+DB PostgreSQL
+SCHEMA DB - Harry NEON DB 
+NEXT AUTH 
+Firebase - Navraj accounts 
+
+
+
+Two teams
+
+1 Next.js APP Web
+- Front end
+- API
+- Login Page 
+- Overview Page 
+- Availability Page
+- Account Page
+  
+
+1 React frontend Pi
+Front End 
+
+
+DB
+- PostgreSQL
+- Schema 
+
+
+
+
+kei-hea-a-nic-webapp/
+├── app/
+│   ├── layout.tsx                      # Root layout — fonts, global providers, nav shell
+│   ├── globals.css                     # Global styles, :root CSS variables
+│   ├── page.tsx                        # Redirects → /login or /availability
+│   │
+│   ├── login/
+│   │   └── page.tsx                    # FR-01 — sign in / register form
+│   │
+│   ├── (dashboard)/                    # Route group — shared auth-gated layout
+│   │   ├── layout.tsx                  # Checks session, renders nav/header for logged-in pages
+│   │   ├── availability/
+│   │   │   └── page.tsx                # FR-02 — status, return time, custom message
+│   │   ├── calendar/
+│   │   │   └── page.tsx                # FR-03, FR-06 — weekly view + .ics import
+│   │   └── contact/
+│   │       └── page.tsx                # FR-04 — email, phone, office location
+│   │
+│   └── api/                            # = the "Diary Server" from your SDD
+│       ├── auth/
+│       │   └── [...nextauth]/
+│       │       └── route.ts            # FR-01, FR-07 — login/session handling
+│       ├── availability/
+│       │   └── route.ts                # GET/PUT — FR-02, FR-05
+│       ├── calendar/
+│       │   ├── route.ts                # GET — FR-03
+│       │   └── import/
+│       │       └── route.ts            # POST .ics upload — FR-06
+│       ├── contact/
+│       │   └── route.ts                # GET/PUT — FR-04
+│       └── display/
+│           ├── [academicId]/
+│           │   └── route.ts            # GET — FR-09; this is what the Pi polls
+│           └── setup/
+│               └── route.ts            # FR-10 — associate a display with an academic
+│
+├── components/
+│   ├── AvailabilityForm.tsx            # "use client" — status dropdown, useState
+│   ├── CalendarView.tsx                # "use client" — weekly grid
+│   ├── ContactForm.tsx                 # "use client"
+│   ├── ImportButton.tsx                # "use client" — .ics file upload
+│   └── ConfirmationToast.tsx           # Save feedback — SRS 4.8
+│
+├── lib/
+│   ├── db.ts                           # Postgres/Neon connection
+│   ├── auth.ts                         # NextAuth config, session helpers
+│   ├── ics-parser.ts                   # .ics parsing (e.g. node-ical)
+│   └── types.ts                        # Shared types: Availability, ContactInfo, CalendarEvent
+│
+├── prisma/                             # If using Prisma as ORM
+│   └── schema.prisma                   # Academic, Availability, Calendar, Contact, DisplayAssociation
+│
+├── middleware.ts                       # Redirects unauthenticated users out of (dashboard)
+├── next.config.js
+├── package.json
+├── tsconfig.json
+└── .env.local                          # DATABASE_URL, auth secrets (never committed)
