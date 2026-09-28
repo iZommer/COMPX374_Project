@@ -47,9 +47,6 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .danger-button { background: var(--danger); }
 .primary-button:disabled { opacity: .55; }
 .form-error { min-height: 1.4em; margin: 0; color: var(--danger) !important; font-weight: 700; }
-.keyboard { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; padding: .5rem; display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem; background: #0d1b2aee; backdrop-filter: blur(8px); }
-.keyboard button { flex: 0 1 8%; border: 1px solid #73879b; border-radius: .4rem; background: #f8fafc; color: #07131f; }
-.keyboard .wide-key { flex-basis: 15%; }
 .connection-icon { font-size: 6rem; color: var(--accent); animation: spin 2s linear infinite; }
 #display-shell { height: 100%; display: grid; grid-template-rows: auto auto auto 1fr var(--nav-height); background: var(--paper); }
 .display-header { min-height: var(--header-height); padding: clamp(.8rem, 2vw, 2rem) clamp(1rem, 4vw, 4rem); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--surface); border-bottom: 2px solid var(--line); }
@@ -121,7 +118,6 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
   .view { padding: .7rem; }
   .status-icon { width: 5.5rem; font-size: 3.5rem; }
   .calendar-grid { grid-template-columns: 3rem repeat(7, minmax(5.5rem, 1fr)); overflow-x: auto; }
-  .keyboard button { flex-basis: 8.5%; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

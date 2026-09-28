@@ -61,7 +61,7 @@ Copy `.env.example` to `.env` for development or edit `/etc/where-is-nic.env` on
 Obtain the API key from the Academic Web Application at `/dashboard/display`. On first boot:
 
 1. Enter the production Diary Server base URL without a trailing slash.
-2. Enter the academic's display API key using the touchscreen keyboard or a physical keyboard.
+2. Enter the academic's display API key using the Pi's physical keyboard.
 3. Tap **Validate and pair**. The server performs a real request before saving anything.
 
 The production URL must be publicly reachable by the Pi. Disable Vercel Deployment Protection for the production route or configure the production deployment so an unauthenticated GET returns JSON rather than a login page.
@@ -148,7 +148,7 @@ Use Raspberry Pi OS Screen Configuration first. For X11 panels, inspect `xinput 
 
 ## Manual acceptance checklist
 
-- [ ] First boot without a stored key opens touch-friendly pairing and the on-screen keyboard works.
+- [ ] First boot without a stored key opens pairing and accepts input from the Pi's physical keyboard.
 - [ ] A bad/revoked key shows a specific message and is not saved.
 - [ ] Unplug the network: the banner appears while last-good data remains on all views.
 - [ ] Reconnect the network: the banner clears automatically within one successful retry.
@@ -172,7 +172,7 @@ Use Raspberry Pi OS Screen Configuration first. For X11 panels, inspect `xinput 
 | FR-12 Contact Information | Email, phone, office with empty-state handling | 4.4, 4.8 |
 | FR-13 QR contact sharing | Offline vCard 3.0 QR with quiet zone and high contrast | 4.5 standard format, 4.7 offline |
 | FR-14 Display navigation | Persistent tabs, horizontal swipe, idle return, views kept mounted | 4.1 response time, 4.8 touch usability |
-| FR-15 Pairing/configuration | First-run setup, real validation, on-screen keyboard, persistent association, protected re-pair | 4.6 security, reliability |
+| FR-15 Pairing/configuration | First-run setup, real validation, physical-keyboard input, persistent association, protected re-pair | 4.6 security, reliability |
 | Polling freshness | 10 s default, 15 s normal maximum, request timeout, no overlap, capped backoff, SSE diffing | 4.1 latency, 4.3 resources, 4.7 reliability |
 | Offline cache | Atomic last-good JSON, cold-start cache, corruption tolerance, two warning levels | 4.7 degraded operation |
 | Local boundary | Loopback-only Express, API key omitted from public state/DOM after pairing, HTTPS production URL | 4.6 security |

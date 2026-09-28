@@ -286,41 +286,6 @@ function connectEvents(): void {
   });
 }
 
-function createKeyboard(): void {
-  const keyboard = $("#keyboard");
-  const keys = [
-    ..."1234567890".split(""),
-    ..."qwertyuiop".split(""),
-    ..."asdfghjkl".split(""),
-    ..."zxcvbnm".split(""),
-    "://", ".", "-", "_", "⌫", "Space", "Hide",
-  ];
-  for (const key of keys) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = key;
-    button.dataset.key = key;
-    if (["⌫", "Space", "Hide"].includes(key)) button.classList.add("wide-key");
-    keyboard.append(button);
-  }
-  let target: HTMLInputElement | null = null;
-  document.querySelectorAll<HTMLInputElement>("#setup-form input").forEach((input) => {
-    input.addEventListener("focus", () => {
-      target = input;
-      keyboard.hidden = false;
-    });
-  });
-  keyboard.addEventListener("pointerdown", (event) => event.preventDefault());
-  keyboard.addEventListener("click", (event) => {
-    const key = (event.target as HTMLElement).dataset.key;
-    if (!key || !target) return;
-    if (key === "Hide") keyboard.hidden = true;
-    else if (key === "⌫") target.value = target.value.slice(0, -1);
-    else target.value += key === "Space" ? " " : key;
-    target.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-}
-
 function wireInteractions(): void {
   document.querySelectorAll<HTMLButtonElement>(".tab").forEach((button) =>
     button.addEventListener("click", () => showView(button.dataset.view as ViewName)),
@@ -358,7 +323,6 @@ function wireInteractions(): void {
       const body = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(body.error || "Pairing failed.");
       apiInput.value = "";
-      $("#keyboard").hidden = true;
       await loadState();
     } catch (caught) {
       error.textContent = caught instanceof Error ? caught.message : "Pairing failed.";
@@ -426,7 +390,6 @@ function startPixelShift(): void {
   }, 60_000);
 }
 
-createKeyboard();
 wireInteractions();
 void loadState().then(connectEvents).catch(() => showScreen("waiting"));
 updateClock();
