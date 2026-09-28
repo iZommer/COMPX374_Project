@@ -4,7 +4,7 @@ import type { AvailabilityStatus, DiaryPayload } from "../shared/payload.js";
 const app = express();
 app.use(express.json());
 let mode: "normal" | "empty-calendar" | "no-contact" | "slow" | "error" = "normal";
-let status: AvailabilityStatus = "AVAILABLE";
+let status: AvailabilityStatus = "OUT_OF_OFFICE";
 
 function mondayStart(): Date {
   const now = new Date();

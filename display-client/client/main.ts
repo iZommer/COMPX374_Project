@@ -71,18 +71,16 @@ function applyCalendarZoom(
 function wireCalendarGestures(): void {
   const grid = $("#calendar-grid");
   grid.addEventListener("pointerdown", (event) => {
-    // Touch input uses Touch Events below. Raspberry Pi Chromium can cancel the
-    // first Pointer Event when a second finger lands, which breaks pinching.
-    if (event.pointerType === "touch") return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    grid.setPointerCapture(event.pointerId);
     calendarPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     resetIdleTimer();
   });
-  grid.addEventListener("pointermove", (event) => {
-    if (event.pointerType === "touch") return;
+  window.addEventListener("pointermove", (event) => {
     const previous = calendarPointers.get(event.pointerId);
     if (!previous) return;
+    // If Chromium exposes two contacts only through Touch Events, let the
+    // fallback below own this gesture instead of also treating it as a drag.
+    if (event.pointerType === "touch" && calendarTouches.length >= 2 && calendarPointers.size < 2) return;
     event.preventDefault();
     if (calendarPointers.size === 1) {
       grid.scrollLeft -= event.clientX - previous.x;
@@ -105,10 +103,9 @@ function wireCalendarGestures(): void {
   });
   const endGesture = (event: PointerEvent) => {
     calendarPointers.delete(event.pointerId);
-    if (grid.hasPointerCapture(event.pointerId)) grid.releasePointerCapture(event.pointerId);
   };
-  grid.addEventListener("pointerup", endGesture);
-  grid.addEventListener("pointercancel", endGesture);
+  window.addEventListener("pointerup", endGesture);
+  window.addEventListener("pointercancel", endGesture);
 
   const readTouches = (event: TouchEvent) => Array.from(event.touches)
     .slice(0, 2)
@@ -121,10 +118,10 @@ function wireCalendarGestures(): void {
   grid.addEventListener("touchmove", (event) => {
     event.preventDefault();
     const nextTouches = readTouches(event);
-    if (calendarTouches.length === 1 && nextTouches.length === 1) {
+    if (calendarPointers.size === 0 && calendarTouches.length === 1 && nextTouches.length === 1) {
       grid.scrollLeft -= nextTouches[0].x - calendarTouches[0].x;
       grid.scrollTop -= nextTouches[0].y - calendarTouches[0].y;
-    } else if (calendarTouches.length >= 2 && nextTouches.length >= 2) {
+    } else if (calendarPointers.size < 2 && calendarTouches.length >= 2 && nextTouches.length >= 2) {
       const previousDistance = gestureDistance(calendarTouches);
       if (previousDistance > 0) {
         applyCalendarZoom(
