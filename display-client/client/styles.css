@@ -56,7 +56,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .warning-banner { padding: .55rem 1rem; text-align: center; font-weight: 750; background: var(--warning); color: #5c4300; border-bottom: 2px solid #d7aa00; }
 .warning-strong { background: #ffd8d8; color: #6e1010; border-color: #b42318; }
 .views { min-height: 0; overflow: hidden; }
-.view { height: 100%; padding: clamp(1rem, 3vw, 3rem); animation: view-in .16s ease-out; }
+.view { height: 100%; padding: clamp(1rem, 3vw, 3rem); overflow-y: auto; overscroll-behavior: contain; animation: view-in .16s ease-out; }
 @keyframes view-in { from { opacity: .5; transform: translateY(.25rem); } }
 .status-card { height: 100%; border-radius: clamp(1rem, 3vw, 2.5rem); display: grid; place-content: center; justify-items: center; padding: 2rem; text-align: center; border: clamp(.45rem, 1vw, .8rem) solid currentColor; background: var(--surface); }
 .status-icon { width: clamp(6rem, 18vw, 14rem); aspect-ratio: 1; display: grid; place-content: center; margin-bottom: .6rem; font-size: clamp(4rem, 13vw, 10rem); line-height: 1; border: .12em solid currentColor; }
@@ -75,7 +75,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .custom-message { max-width: 55rem; font-size: clamp(1.2rem, 2.6vw, 2.2rem); color: var(--ink); margin: .5rem 0 0; }
 .section-heading { height: 4rem; display: flex; justify-content: space-between; align-items: end; }
 .section-heading h2, .contact-layout h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 3.5rem); }
-.calendar-grid { --calendar-hours: 10; --calendar-days: 7; position: relative; height: calc(100% - 4.5rem); display: grid; grid-template-columns: clamp(3.2rem, 6vw, 5rem) repeat(var(--calendar-days), minmax(0, 1fr)); grid-template-rows: 3rem repeat(var(--calendar-hours), 1fr); border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+.calendar-grid { --calendar-hours: 10; --calendar-days: 7; position: relative; height: calc(100% - 4.5rem); display: grid; grid-template-columns: clamp(3.2rem, 6vw, 5rem) repeat(var(--calendar-days), minmax(0, 1fr)); grid-template-rows: 3rem repeat(var(--calendar-hours), 1fr); border: 1px solid var(--line); background: var(--surface); overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; touch-action: pan-x pan-y; }
 .calendar-corner { grid-column: 1; grid-row: 1; border: 1px solid var(--line); }
 .day-header { z-index: 3; padding: .6rem .2rem; overflow: hidden; border: 1px solid var(--line); text-align: center; font-weight: 800; white-space: nowrap; }
 .day-header.today { background: #d6f4f1; box-shadow: inset 0 -.3rem var(--accent); }
@@ -85,7 +85,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .calendar-event strong, .calendar-event span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .now-line { position: absolute; z-index: 4; left: 0; right: 0; height: 3px; background: #d00000; box-shadow: 0 0 0 1px white; }
 .now-line::before { content: ""; position: absolute; left: -.3rem; top: -.25rem; width: .55rem; height: .55rem; border-radius: 50%; background: #d00000; }
-.contact-layout { height: 100%; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(16rem, .65fr); align-items: center; gap: clamp(2rem, 6vw, 7rem); max-width: 90rem; margin: auto; }
+.contact-layout { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(16rem, .65fr); align-items: center; gap: clamp(2rem, 6vw, 7rem); max-width: 90rem; margin: auto; }
 .contact-list { display: grid; gap: 1.2rem; margin-top: 2rem; }
 .contact-list div { padding-bottom: 1rem; border-bottom: 2px solid var(--line); }
 .contact-list dt { color: var(--muted); font-size: .85rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
@@ -119,6 +119,10 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
   .view { padding: .7rem; }
   .status-icon { width: 5.5rem; font-size: 3.5rem; }
   .calendar-grid { grid-template-columns: 3rem repeat(7, minmax(5.5rem, 1fr)); overflow-x: auto; }
+}
+@media (max-height: 600px) {
+  .calendar-grid { height: 32rem; min-height: 32rem; }
+  .contact-layout { min-height: auto; padding-block: .5rem 1.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

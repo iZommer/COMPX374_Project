@@ -21,6 +21,7 @@ let state: DisplayState | null = null;
 let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let lastPayloadSignature = "";
 let touchStartX = 0;
+let allowViewSwipe = true;
 
 function showScreen(name: keyof typeof screens): void {
   for (const [key, element] of Object.entries(screens)) element.hidden = key !== name;
@@ -292,9 +293,11 @@ function wireInteractions(): void {
   );
   $("#views").addEventListener("touchstart", (event) => {
     touchStartX = event.changedTouches[0].clientX;
+    allowViewSwipe = !(event.target as HTMLElement).closest(".calendar-grid");
     resetIdleTimer();
   }, { passive: true });
   $("#views").addEventListener("touchend", (event) => {
+    if (!allowViewSwipe) return;
     const distance = event.changedTouches[0].clientX - touchStartX;
     if (Math.abs(distance) < 60) return;
     const index = views.indexOf(currentView);
