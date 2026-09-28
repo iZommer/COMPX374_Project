@@ -22,17 +22,79 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let lastPayloadSignature = "";
 let touchStartX = 0;
 let allowViewSwipe = true;
-const calendarZoomLevels = [1, 1.25, 1.5, 1.75, 2] as const;
-let calendarZoomIndex = 0;
+const calendarMinZoom = 0.75;
+const calendarMaxZoom = 2.5;
+let calendarZoom = 1;
+const calendarPointers = new Map<number, { x: number; y: number }>();
 
-function applyCalendarZoom(): void {
-  const scale = calendarZoomLevels[calendarZoomIndex];
+function applyCalendarZoom(
+  requestedScale = calendarZoom,
+  anchorBefore?: { x: number; y: number },
+  anchorAfter = anchorBefore,
+): void {
   const grid = $("#calendar-grid");
+  const previousScale = calendarZoom;
+  const scale = Math.max(calendarMinZoom, Math.min(calendarMaxZoom, requestedScale));
+  const fallbackAnchor = { x: grid.clientWidth / 2, y: grid.clientHeight / 2 };
+  const before = anchorBefore ?? fallbackAnchor;
+  const after = anchorAfter ?? fallbackAnchor;
+  const logicalX = (grid.scrollLeft + before.x) / previousScale;
+  const logicalY = (grid.scrollTop + before.y) / previousScale;
+  calendarZoom = scale;
   grid.style.setProperty("--calendar-day-width", `${Math.round(120 * scale)}px`);
   grid.style.setProperty("--calendar-hour-height", `${Math.round(32 * scale)}px`);
   $("#calendar-zoom-value").textContent = `${Math.round(scale * 100)}%`;
-  ($("#calendar-zoom-out") as HTMLButtonElement).disabled = calendarZoomIndex === 0;
-  ($("#calendar-zoom-in") as HTMLButtonElement).disabled = calendarZoomIndex === calendarZoomLevels.length - 1;
+  ($("#calendar-zoom-out") as HTMLButtonElement).disabled = scale <= calendarMinZoom;
+  ($("#calendar-zoom-in") as HTMLButtonElement).disabled = scale >= calendarMaxZoom;
+  // Force the resized grid to be measured before restoring the point under the fingers.
+  void grid.scrollWidth;
+  grid.scrollLeft = logicalX * scale - after.x;
+  grid.scrollTop = logicalY * scale - after.y;
+}
+
+function wireCalendarGestures(): void {
+  const grid = $("#calendar-grid");
+  grid.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    grid.setPointerCapture(event.pointerId);
+    calendarPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    resetIdleTimer();
+  });
+  grid.addEventListener("pointermove", (event) => {
+    const previous = calendarPointers.get(event.pointerId);
+    if (!previous) return;
+    event.preventDefault();
+    if (calendarPointers.size === 1) {
+      grid.scrollLeft -= event.clientX - previous.x;
+      grid.scrollTop -= event.clientY - previous.y;
+      calendarPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      return;
+    }
+
+    const beforePoints = [...calendarPointers.values()].slice(0, 2);
+    calendarPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const afterPoints = [...calendarPointers.values()].slice(0, 2);
+    const distance = (points: { x: number; y: number }[]) =>
+      Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+    const midpoint = (points: { x: number; y: number }[]) => ({
+      x: (points[0].x + points[1].x) / 2 - grid.getBoundingClientRect().left,
+      y: (points[0].y + points[1].y) / 2 - grid.getBoundingClientRect().top,
+    });
+    const beforeDistance = distance(beforePoints);
+    if (beforeDistance > 0) {
+      applyCalendarZoom(
+        calendarZoom * (distance(afterPoints) / beforeDistance),
+        midpoint(beforePoints),
+        midpoint(afterPoints),
+      );
+    }
+  });
+  const endGesture = (event: PointerEvent) => {
+    calendarPointers.delete(event.pointerId);
+    if (grid.hasPointerCapture(event.pointerId)) grid.releasePointerCapture(event.pointerId);
+  };
+  grid.addEventListener("pointerup", endGesture);
+  grid.addEventListener("pointercancel", endGesture);
 }
 
 function showScreen(name: keyof typeof screens): void {
@@ -320,15 +382,14 @@ function wireInteractions(): void {
   document.addEventListener("contextmenu", (event) => event.preventDefault());
   document.addEventListener("dragstart", (event) => event.preventDefault());
   $("#calendar-zoom-out").addEventListener("click", () => {
-    calendarZoomIndex = Math.max(0, calendarZoomIndex - 1);
-    applyCalendarZoom();
+    applyCalendarZoom(calendarZoom - .25);
     resetIdleTimer();
   });
   $("#calendar-zoom-in").addEventListener("click", () => {
-    calendarZoomIndex = Math.min(calendarZoomLevels.length - 1, calendarZoomIndex + 1);
-    applyCalendarZoom();
+    applyCalendarZoom(calendarZoom + .25);
     resetIdleTimer();
   });
+  wireCalendarGestures();
 
   $("#setup-form").addEventListener("submit", async (event) => {
     event.preventDefault();
