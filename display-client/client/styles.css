@@ -32,6 +32,7 @@ button { min-width: 48px; min-height: 48px; }
 [hidden] { display: none !important; }
 .full-screen { width: 100%; height: 100%; padding: clamp(1rem, 4vw, 4rem); }
 .centre-panel { display: grid; place-content: center; justify-items: center; text-align: center; background: radial-gradient(circle at top, #fff 0, var(--paper) 60%); }
+#setup-screen { display: flex; align-items: safe center; justify-content: center; overflow-y: auto; overscroll-behavior: contain; }
 .centre-panel h1 { font-size: clamp(2rem, 6vw, 5rem); margin: .5rem 0; }
 .centre-panel p { color: var(--muted); max-width: 45rem; }
 .spinner { width: 4rem; height: 4rem; border: .45rem solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
