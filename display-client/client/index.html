@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#102a43" />
+    <title>Digital Office Display</title>
+  </head>
+  <body>
+    <main id="app" aria-live="polite">
+      <section id="loading-screen" class="full-screen centre-panel">
+        <div class="spinner" aria-hidden="true"></div>
+        <h1>Starting display…</h1>
+      </section>
+
+      <section id="setup-screen" class="full-screen centre-panel" hidden>
+        <form id="setup-form" class="setup-card">
+          <p class="eyebrow">Digital Office Display</p>
+          <h1>Pair this display</h1>
+          <p id="setup-intro">Enter the Diary Server address and the display key from the academic web app.</p>
+          <label>Diary Server URL
+            <input id="server-url" name="serverUrl" type="url" inputmode="url" autocomplete="off" required />
+          </label>
+          <label>Display API key
+            <input id="api-key" name="apiKey" type="password" autocomplete="off" required />
+          </label>
+          <p id="setup-error" class="form-error" role="alert"></p>
+          <button id="pair-button" class="primary-button" type="submit">Validate and pair</button>
+        </form>
+        <div id="keyboard" class="keyboard" aria-label="On-screen keyboard" hidden></div>
+      </section>
+
+      <section id="waiting-screen" class="full-screen centre-panel" hidden>
+        <div class="connection-icon" aria-hidden="true">↻</div>
+        <h1>Waiting for connection…</h1>
+        <p>The display will update automatically when the Diary Server is reachable.</p>
+      </section>
+
+      <section id="display-shell" hidden>
+        <button id="admin-hotspot" class="admin-hotspot" aria-label="Display administration"></button>
+        <header class="display-header">
+          <div>
+            <p class="eyebrow">School of Computing and Mathematical Sciences</p>
+            <h1 id="academic-name">Academic</h1>
+          </div>
+          <time id="header-time"></time>
+        </header>
+
+        <aside id="warning-banner" class="warning-banner" hidden></aside>
+        <aside id="clock-banner" class="warning-banner warning-strong" hidden>
+          The display clock appears incorrect. Calendar “now” indicators may be inaccurate.
+        </aside>
+
+        <div id="views" class="views">
+          <section id="status-view" class="view active" aria-labelledby="status-tab">
+            <div id="status-card" class="status-card status-unknown">
+              <div id="status-icon" class="status-icon" aria-hidden="true">?</div>
+              <p id="status-label" class="status-label">Status unavailable</p>
+              <p id="return-time" class="return-time"></p>
+              <p id="custom-message" class="custom-message"></p>
+            </div>
+          </section>
+
+          <section id="calendar-view" class="view" aria-labelledby="calendar-tab" hidden>
+            <div class="section-heading">
+              <div><p class="eyebrow">Schedule</p><h2>This week</h2></div>
+              <p id="calendar-range"></p>
+            </div>
+            <div id="calendar-grid" class="calendar-grid"></div>
+            <p id="empty-calendar" class="empty-state" hidden>No events scheduled this week.</p>
+          </section>
+
+          <section id="contact-view" class="view" aria-labelledby="contact-tab" hidden>
+            <div class="contact-layout">
+              <div>
+                <p class="eyebrow">Get in touch</p>
+                <h2>Contact information</h2>
+                <dl class="contact-list">
+                  <div id="email-row"><dt>Email</dt><dd id="contact-email"></dd></div>
+                  <div id="phone-row"><dt>Phone</dt><dd id="contact-phone"></dd></div>
+                  <div id="office-row"><dt>Office</dt><dd id="contact-office"></dd></div>
+                </dl>
+              </div>
+              <div id="qr-panel" class="qr-panel">
+                <canvas id="contact-qr" aria-label="QR code containing contact details"></canvas>
+                <p>Scan to add contact</p>
+              </div>
+              <p id="no-contact" class="empty-state" hidden>No contact details provided.</p>
+            </div>
+          </section>
+        </div>
+
+        <nav class="tab-bar" aria-label="Display views">
+          <button id="status-tab" class="tab active" data-view="status" aria-current="page"><span aria-hidden="true">●</span>Status</button>
+          <button id="calendar-tab" class="tab" data-view="calendar"><span aria-hidden="true">▦</span>Calendar</button>
+          <button id="contact-tab" class="tab" data-view="contact"><span aria-hidden="true">▣</span>Contact</button>
+        </nav>
+      </section>
+    </main>
+
+    <dialog id="settings-dialog">
+      <form id="settings-form" method="dialog">
+        <div class="dialog-heading"><h2>Display settings</h2><button value="cancel" aria-label="Close settings">×</button></div>
+        <label>Text size
+          <select id="text-scale"><option value="normal">Normal</option><option value="large">Large</option><option value="largest">Largest</option></select>
+        </label>
+        <label class="check-label"><input id="high-contrast" type="checkbox" /> High contrast</label>
+        <label class="check-label"><input id="pixel-shift" type="checkbox" /> Subtle pixel shift</label>
+        <label>Return to Status after <input id="idle-seconds" type="number" min="10" max="3600" /> seconds</label>
+        <div class="dialog-actions">
+          <button id="reset-pairing" class="danger-button" type="button">Re-pair display</button>
+          <button id="save-settings" class="primary-button" type="button">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>

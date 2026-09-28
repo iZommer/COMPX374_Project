@@ -1,0 +1,16 @@
+[Unit]
+Description=Where Is Nic Chromium Kiosk
+After=graphical.target where-is-nic.service
+Requires=where-is-nic.service
+
+[Service]
+Type=simple
+User=@KIOSK_USER@
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/@KIOSK_USER@/.Xauthority
+ExecStart=/opt/where-is-nic/deploy/launch-kiosk.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target

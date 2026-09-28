@@ -1,0 +1,32 @@
+{
+  "name": "where-is-nic-display",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20 <23"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,ui \"tsx watch server/index.ts\" \"vite\"",
+    "build": "tsc -p tsconfig.server.json && tsc -p tsconfig.client.json && vite build",
+    "start": "node dist-node/server/index.js",
+    "mock": "tsx mock/server.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.19.17",
+    "@types/qrcode": "^1.5.5",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.11"
+  }
+}
