@@ -49,7 +49,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .primary-button:disabled { opacity: .55; }
 .form-error { min-height: 1.4em; margin: 0; color: var(--danger) !important; font-weight: 700; }
 .connection-icon { font-size: 6rem; color: var(--accent); animation: spin 2s linear infinite; }
-#display-shell { height: 100%; display: grid; grid-template-rows: auto auto auto 1fr var(--nav-height); background: var(--paper); }
+#display-shell { position: relative; height: 100%; display: grid; grid-template-rows: auto auto auto 1fr var(--nav-height); overflow: hidden; background: var(--paper); }
 .display-header { min-height: var(--header-height); padding: clamp(.8rem, 2vw, 2rem) clamp(1rem, 4vw, 4rem); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--surface); border-bottom: 2px solid var(--line); }
 .display-header h1 { margin: .15rem 0 0; font-size: clamp(1.8rem, 4.5vw, 4.5rem); line-height: 1; }
 .display-header time { font-weight: 750; color: var(--muted); white-space: nowrap; }
@@ -74,9 +74,15 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .status-label { margin: .2rem 0; font-size: clamp(3.2rem, 10vw, 9rem); font-weight: 900; line-height: .95; letter-spacing: -.04em; }
 .return-time { font-size: clamp(1.3rem, 3vw, 2.5rem); font-weight: 750; margin: .8rem 0 0; color: var(--ink); }
 .custom-message { max-width: 55rem; font-size: clamp(1.2rem, 2.6vw, 2.2rem); color: var(--ink); margin: .5rem 0 0; }
-.section-heading { height: 4rem; display: flex; justify-content: space-between; align-items: end; }
+.section-heading { height: 4rem; display: flex; justify-content: space-between; align-items: end; gap: 1rem; }
 .section-heading h2, .contact-layout h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 3.5rem); }
-.calendar-grid { --calendar-hours: 10; --calendar-days: 7; position: relative; height: calc(100% - 4.5rem); display: grid; grid-template-columns: clamp(3.2rem, 6vw, 5rem) repeat(var(--calendar-days), minmax(0, 1fr)); grid-template-rows: 3rem repeat(var(--calendar-hours), 1fr); border: 1px solid var(--line); background: var(--surface); overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; touch-action: pan-x pan-y; }
+.calendar-heading-actions { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+.calendar-heading-actions > p { margin: 0; }
+.calendar-zoom { display: flex; align-items: center; gap: .35rem; }
+.calendar-zoom button { min-width: 44px; min-height: 44px; padding: 0; border: 2px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); font-size: 1.5rem; font-weight: 800; line-height: 1; }
+.calendar-zoom button:disabled { opacity: .4; }
+.calendar-zoom output { min-width: 3.5rem; text-align: center; color: var(--muted); font-size: .8rem; font-weight: 800; }
+.calendar-grid { --calendar-hours: 10; --calendar-days: 7; --calendar-day-width: 120px; --calendar-hour-height: 32px; position: relative; height: calc(100% - 4.5rem); display: grid; grid-template-columns: clamp(3.2rem, 6vw, 5rem) repeat(var(--calendar-days), var(--calendar-day-width)); grid-template-rows: 3rem repeat(var(--calendar-hours), var(--calendar-hour-height)); border: 1px solid var(--line); background: var(--surface); overflow: auto; overscroll-behavior: contain; touch-action: pan-x pan-y; }
 .calendar-corner { grid-column: 1; grid-row: 1; border: 1px solid var(--line); }
 .day-header { z-index: 3; padding: .6rem .2rem; overflow: hidden; border: 1px solid var(--line); text-align: center; font-weight: 800; white-space: nowrap; }
 .day-header.today { background: #d6f4f1; box-shadow: inset 0 -.3rem var(--accent); }
@@ -95,7 +101,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .qr-panel canvas { display: block; width: min(32vw, 320px); height: auto !important; image-rendering: pixelated; }
 .qr-panel p { margin: .7rem 0 0; font-weight: 800; }
 .empty-state { align-self: center; justify-self: center; color: var(--muted); font-size: clamp(1.5rem, 4vw, 3rem); text-align: center; }
-.tab-bar { height: var(--nav-height); display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--line); background: var(--surface); }
+.tab-bar { position: absolute; z-index: 8; right: 0; bottom: 0; left: 0; height: var(--nav-height); display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--line); background: var(--surface); }
 .tab { height: 100%; min-height: 48px; padding: 0 .25rem; display: flex; align-items: center; justify-content: center; gap: .5rem; border: 0; border-top: .3rem solid transparent; background: transparent; color: var(--muted); font-weight: 800; line-height: 1; }
 .tab span { font-size: 1.4em; }
 .tab.active { color: var(--accent); border-top-color: var(--accent); background: #e7f6f4; }
@@ -112,14 +118,14 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
 @media (orientation: portrait) {
   .contact-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 1rem; overflow: auto; }
   .qr-panel canvas { width: min(46vw, 300px); }
-  .calendar-grid { overflow-x: auto; grid-template-columns: 3.2rem repeat(7, minmax(7rem, 1fr)); }
+  .calendar-grid { grid-template-columns: 3.2rem repeat(7, var(--calendar-day-width)); }
 }
 @media (max-width: 850px) {
   .eyebrow { font-size: .68rem; }
   .display-header { min-height: 4.5rem; }
   .view { padding: .7rem; }
   .status-icon { width: 5.5rem; font-size: 3.5rem; }
-  .calendar-grid { grid-template-columns: 3rem repeat(7, minmax(9rem, 1fr)); overflow-x: auto; }
+  .calendar-grid { grid-template-columns: 3rem repeat(7, var(--calendar-day-width)); }
 }
 @media (max-height: 600px) {
   .calendar-grid { height: 32rem; min-height: 32rem; }
@@ -187,21 +193,25 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
   .return-time { grid-column: 2; margin: 8px 0 0; font-size: 20px; }
   .custom-message { grid-column: 2; margin: 5px 0 0; font-size: 17px; line-height: 1.15; }
 
-  /* 42 px for time labels leaves enough room to show all seven days at once. */
+  /* Keep appointments legible and let the user pan/zoom the calendar itself. */
   #calendar-view { overflow: hidden; }
-  .section-heading { height: 44px; align-items: center; }
+  .section-heading { height: 52px; align-items: center; }
   .section-heading h2 { font-size: 25px; line-height: 1; }
-  .section-heading > p { margin: 0; font-size: 12px; }
+  .calendar-heading-actions { gap: 8px; }
+  .calendar-heading-actions > p { display: none; }
+  .calendar-zoom { gap: 4px; }
+  .calendar-zoom button { min-width: 44px; min-height: 44px; }
+  .calendar-zoom output { min-width: 42px; font-size: 10px; }
   .calendar-grid {
-    height: calc(100% - 44px);
+    height: calc(100% - 52px);
     min-height: 0;
-    grid-template-columns: 42px repeat(7, minmax(0, 1fr));
-    grid-template-rows: 28px repeat(var(--calendar-hours), minmax(0, 1fr));
-    overflow: hidden;
+    grid-template-columns: 42px repeat(7, var(--calendar-day-width));
+    grid-template-rows: 32px repeat(var(--calendar-hours), var(--calendar-hour-height));
+    overflow: auto;
   }
-  .day-header { padding: 5px 1px; font-size: 11px; }
-  .time-label { transform: translateY(-.5em); padding-right: 3px; font-size: 9px; }
-  .calendar-event { padding: 1px 2px; border-left-width: 3px; font-size: 9px; line-height: 1.1; }
+  .day-header { padding: 7px 2px; font-size: 12px; }
+  .time-label { transform: translateY(-.5em); padding-right: 4px; font-size: 10px; }
+  .calendar-event { padding: 2px 3px; border-left-width: 3px; font-size: 11px; line-height: 1.15; }
 
   #contact-view { padding: 8px 12px; }
   .contact-layout {

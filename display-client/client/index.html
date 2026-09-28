@@ -63,7 +63,14 @@
           <section id="calendar-view" class="view" aria-labelledby="calendar-tab" hidden>
             <div class="section-heading">
               <div><p class="eyebrow">Schedule</p><h2>This week</h2></div>
-              <p id="calendar-range"></p>
+              <div class="calendar-heading-actions">
+                <p id="calendar-range"></p>
+                <div class="calendar-zoom" aria-label="Calendar zoom controls">
+                  <button id="calendar-zoom-out" type="button" aria-label="Zoom calendar out">−</button>
+                  <output id="calendar-zoom-value" aria-live="polite">100%</output>
+                  <button id="calendar-zoom-in" type="button" aria-label="Zoom calendar in">+</button>
+                </div>
+              </div>
             </div>
             <div id="calendar-grid" class="calendar-grid"></div>
             <p id="empty-calendar" class="empty-state" hidden>No events scheduled this week.</p>

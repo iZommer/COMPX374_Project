@@ -22,6 +22,18 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let lastPayloadSignature = "";
 let touchStartX = 0;
 let allowViewSwipe = true;
+const calendarZoomLevels = [1, 1.25, 1.5, 1.75, 2] as const;
+let calendarZoomIndex = 0;
+
+function applyCalendarZoom(): void {
+  const scale = calendarZoomLevels[calendarZoomIndex];
+  const grid = $("#calendar-grid");
+  grid.style.setProperty("--calendar-day-width", `${Math.round(120 * scale)}px`);
+  grid.style.setProperty("--calendar-hour-height", `${Math.round(32 * scale)}px`);
+  $("#calendar-zoom-value").textContent = `${Math.round(scale * 100)}%`;
+  ($("#calendar-zoom-out") as HTMLButtonElement).disabled = calendarZoomIndex === 0;
+  ($("#calendar-zoom-in") as HTMLButtonElement).disabled = calendarZoomIndex === calendarZoomLevels.length - 1;
+}
 
 function showScreen(name: keyof typeof screens): void {
   for (const [key, element] of Object.entries(screens)) element.hidden = key !== name;
@@ -307,6 +319,16 @@ function wireInteractions(): void {
   }, { passive: true });
   document.addEventListener("contextmenu", (event) => event.preventDefault());
   document.addEventListener("dragstart", (event) => event.preventDefault());
+  $("#calendar-zoom-out").addEventListener("click", () => {
+    calendarZoomIndex = Math.max(0, calendarZoomIndex - 1);
+    applyCalendarZoom();
+    resetIdleTimer();
+  });
+  $("#calendar-zoom-in").addEventListener("click", () => {
+    calendarZoomIndex = Math.min(calendarZoomLevels.length - 1, calendarZoomIndex + 1);
+    applyCalendarZoom();
+    resetIdleTimer();
+  });
 
   $("#setup-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -396,6 +418,7 @@ function startPixelShift(): void {
 }
 
 wireInteractions();
+applyCalendarZoom();
 void loadState().then(connectEvents).catch(() => showScreen("waiting"));
 updateClock();
 setInterval(updateClock, 30_000);
