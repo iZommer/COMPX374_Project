@@ -15,7 +15,7 @@
   background: var(--paper);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: clamp(14px, 1.25vw, 22px);
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -56,7 +56,8 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .warning-banner { padding: .55rem 1rem; text-align: center; font-weight: 750; background: var(--warning); color: #5c4300; border-bottom: 2px solid #d7aa00; }
 .warning-strong { background: #ffd8d8; color: #6e1010; border-color: #b42318; }
 .views { min-height: 0; overflow: hidden; }
-.view { height: 100%; padding: clamp(1rem, 3vw, 3rem); overflow-y: auto; overscroll-behavior: contain; animation: view-in .16s ease-out; }
+.view { height: 100%; padding: clamp(1rem, 3vw, 3rem); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; animation: view-in .16s ease-out; }
+#calendar-view { touch-action: pan-x pan-y; }
 @keyframes view-in { from { opacity: .5; transform: translateY(.25rem); } }
 .status-card { height: 100%; border-radius: clamp(1rem, 3vw, 2.5rem); display: grid; place-content: center; justify-items: center; padding: 2rem; text-align: center; border: clamp(.45rem, 1vw, .8rem) solid currentColor; background: var(--surface); }
 .status-icon { width: clamp(6rem, 18vw, 14rem); aspect-ratio: 1; display: grid; place-content: center; margin-bottom: .6rem; font-size: clamp(4rem, 13vw, 10rem); line-height: 1; border: .12em solid currentColor; }
@@ -118,7 +119,7 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
   .display-header { min-height: 4.5rem; }
   .view { padding: .7rem; }
   .status-icon { width: 5.5rem; font-size: 3.5rem; }
-  .calendar-grid { grid-template-columns: 3rem repeat(7, minmax(5.5rem, 1fr)); overflow-x: auto; }
+  .calendar-grid { grid-template-columns: 3rem repeat(7, minmax(9rem, 1fr)); overflow-x: auto; }
 }
 @media (max-height: 600px) {
   .calendar-grid { height: 32rem; min-height: 32rem; }

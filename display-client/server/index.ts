@@ -185,8 +185,19 @@ app.post("/local/reset", async (_request, response) => {
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(currentDir, "../../dist");
-app.use(express.static(webRoot, { index: "index.html", maxAge: "1h" }));
-app.get("/{*path}", (_request, response) => response.sendFile(path.join(webRoot, "index.html")));
+app.use(express.static(webRoot, {
+  index: "index.html",
+  setHeaders: (response, filePath) => {
+    if (path.basename(filePath) === "index.html")
+      response.setHeader("Cache-Control", "no-cache");
+    else if (filePath.includes(`${path.sep}assets${path.sep}`))
+      response.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },
+}));
+app.get("/{*path}", (_request, response) => {
+  response.setHeader("Cache-Control", "no-cache");
+  response.sendFile(path.join(webRoot, "index.html"));
+});
 
 const server = app.listen(runtime.port, "127.0.0.1", () => {
   console.log(`Digital Office Display listening on http://127.0.0.1:${runtime.port}`);

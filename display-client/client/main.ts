@@ -293,7 +293,9 @@ function wireInteractions(): void {
   );
   $("#views").addEventListener("touchstart", (event) => {
     touchStartX = event.changedTouches[0].clientX;
-    allowViewSwipe = !(event.target as HTMLElement).closest(".calendar-grid");
+    allowViewSwipe = !event.composedPath().some(
+      (target) => target instanceof Element && target.classList.contains("calendar-grid"),
+    );
     resetIdleTimer();
   }, { passive: true });
   $("#views").addEventListener("touchend", (event) => {
