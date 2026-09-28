@@ -26,6 +26,22 @@ const calendarMinZoom = 0.75;
 const calendarMaxZoom = 2.5;
 let calendarZoom = 1;
 const calendarPointers = new Map<number, { x: number; y: number }>();
+let calendarTouches: { x: number; y: number }[] = [];
+
+function gestureDistance(points: { x: number; y: number }[]): number {
+  return Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+}
+
+function gestureMidpoint(
+  points: { x: number; y: number }[],
+  grid: HTMLElement,
+): { x: number; y: number } {
+  const bounds = grid.getBoundingClientRect();
+  return {
+    x: (points[0].x + points[1].x) / 2 - bounds.left,
+    y: (points[0].y + points[1].y) / 2 - bounds.top,
+  };
+}
 
 function applyCalendarZoom(
   requestedScale = calendarZoom,
@@ -55,12 +71,16 @@ function applyCalendarZoom(
 function wireCalendarGestures(): void {
   const grid = $("#calendar-grid");
   grid.addEventListener("pointerdown", (event) => {
+    // Touch input uses Touch Events below. Raspberry Pi Chromium can cancel the
+    // first Pointer Event when a second finger lands, which breaks pinching.
+    if (event.pointerType === "touch") return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     grid.setPointerCapture(event.pointerId);
     calendarPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     resetIdleTimer();
   });
   grid.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch") return;
     const previous = calendarPointers.get(event.pointerId);
     if (!previous) return;
     event.preventDefault();
@@ -74,18 +94,12 @@ function wireCalendarGestures(): void {
     const beforePoints = [...calendarPointers.values()].slice(0, 2);
     calendarPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     const afterPoints = [...calendarPointers.values()].slice(0, 2);
-    const distance = (points: { x: number; y: number }[]) =>
-      Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
-    const midpoint = (points: { x: number; y: number }[]) => ({
-      x: (points[0].x + points[1].x) / 2 - grid.getBoundingClientRect().left,
-      y: (points[0].y + points[1].y) / 2 - grid.getBoundingClientRect().top,
-    });
-    const beforeDistance = distance(beforePoints);
+    const beforeDistance = gestureDistance(beforePoints);
     if (beforeDistance > 0) {
       applyCalendarZoom(
-        calendarZoom * (distance(afterPoints) / beforeDistance),
-        midpoint(beforePoints),
-        midpoint(afterPoints),
+        calendarZoom * (gestureDistance(afterPoints) / beforeDistance),
+        gestureMidpoint(beforePoints, grid),
+        gestureMidpoint(afterPoints, grid),
       );
     }
   });
@@ -95,6 +109,38 @@ function wireCalendarGestures(): void {
   };
   grid.addEventListener("pointerup", endGesture);
   grid.addEventListener("pointercancel", endGesture);
+
+  const readTouches = (event: TouchEvent) => Array.from(event.touches)
+    .slice(0, 2)
+    .map((touch) => ({ x: touch.clientX, y: touch.clientY }));
+  grid.addEventListener("touchstart", (event) => {
+    event.preventDefault();
+    calendarTouches = readTouches(event);
+    resetIdleTimer();
+  }, { passive: false });
+  grid.addEventListener("touchmove", (event) => {
+    event.preventDefault();
+    const nextTouches = readTouches(event);
+    if (calendarTouches.length === 1 && nextTouches.length === 1) {
+      grid.scrollLeft -= nextTouches[0].x - calendarTouches[0].x;
+      grid.scrollTop -= nextTouches[0].y - calendarTouches[0].y;
+    } else if (calendarTouches.length >= 2 && nextTouches.length >= 2) {
+      const previousDistance = gestureDistance(calendarTouches);
+      if (previousDistance > 0) {
+        applyCalendarZoom(
+          calendarZoom * (gestureDistance(nextTouches) / previousDistance),
+          gestureMidpoint(calendarTouches, grid),
+          gestureMidpoint(nextTouches, grid),
+        );
+      }
+    }
+    calendarTouches = nextTouches;
+  }, { passive: false });
+  const endTouchGesture = (event: TouchEvent) => {
+    calendarTouches = readTouches(event);
+  };
+  grid.addEventListener("touchend", endTouchGesture, { passive: true });
+  grid.addEventListener("touchcancel", endTouchGesture, { passive: true });
 }
 
 function showScreen(name: keyof typeof screens): void {
