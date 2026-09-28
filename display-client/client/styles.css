@@ -7,7 +7,7 @@
   --accent: #006d77;
   --warning: #fff3bf;
   --danger: #9b2226;
-  --nav-height: clamp(4.5rem, 11vh, 7rem);
+  --nav-height: clamp(48px, 9vh, 64px);
   --header-height: clamp(5rem, 13vh, 8rem);
   --shift-x: 0px;
   --shift-y: 0px;
@@ -123,7 +123,18 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
 }
 @media (max-height: 600px) {
   .calendar-grid { height: 32rem; min-height: 32rem; }
-  .contact-layout { min-height: auto; padding-block: .5rem 1.5rem; }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  :root { --header-height: 4rem; }
+  .display-header { padding-block: .5rem; }
+  #contact-view { overflow: hidden; padding: .5rem 1rem; }
+  .contact-layout { height: 100%; min-height: 0; gap: clamp(1rem, 4vw, 3rem); padding: 0; }
+  .contact-list { gap: .55rem; margin-top: .75rem; }
+  .contact-list div { padding-bottom: .45rem; }
+  .contact-list dd { font-size: clamp(1.15rem, 2.8vw, 2rem); }
+  .qr-panel { padding: .45rem; border-radius: .75rem; }
+  .qr-panel canvas { width: min(30vw, calc(100vh - var(--header-height) - var(--nav-height) - 6rem)); }
+  .qr-panel p { margin-top: .3rem; font-size: .78rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
