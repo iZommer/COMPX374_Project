@@ -126,6 +126,15 @@ Tests cover recurrence/DST, exceptions, import limits, validation, and API autho
 
 Dependency overrides select patched transitive packages; recheck them when upgrading dependencies.
 
+The `jwks-rsa` override pins its `jose` dependency to 5.10.0, which provides a
+CommonJS entry point. Without it, Firebase Admin 14's `jwks-rsa` dependency loads
+ESM-only `jose` 6 using `require()`, crashing API startup on Vercel runtimes without
+`require(esm)` support ([upstream issue](https://github.com/auth0/node-jwks-rsa/issues/507)).
+Keep this override until the upstream loader/runtime incompatibility is resolved.
+The runtime regression test disables `require(esm)` and checks both Firebase Admin
+loading and RSA signing-key conversion. Commit `package.json` and `package-lock.json`
+together and redeploy to apply the fix.
+
 ### Build verification (24 September 2026)
 
 - Production build, TypeScript checks, and Prisma schema validation pass.

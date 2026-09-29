@@ -13,15 +13,35 @@ export async function api<T>(
       ...options,
       signal: options.signal ?? controller.signal,
       headers: {
+        Accept: "application/json",
         ...(options.body ? { "Content-Type": "application/json" } : {}),
         ...options.headers,
         Authorization: `Bearer ${await user.getIdToken()}`,
       },
       cache: "no-store",
     });
-    const data = await response.json();
+    const endpoint = `/api/${path.split("?")[0]}`;
+    const contentType = response.headers.get("content-type") ?? "";
+    const invalidResponse = () =>
+      new Error(
+        `The server returned an unexpected response for ${endpoint} (HTTP ${response.status}). ` +
+          "Check the deployment's API routes and runtime logs.",
+      );
+    if (!/^application\/(?:[\w.-]+\+)?json(?:\s*;|\s*$)/i.test(contentType))
+      throw invalidResponse();
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      if (error instanceof SyntaxError) throw invalidResponse();
+      throw error;
+    }
     if (!response.ok)
-      throw new Error(data.error || "The request could not be completed.");
+      throw new Error(
+        typeof data?.error === "string" && data.error
+          ? data.error
+          : `The request could not be completed (HTTP ${response.status}).`,
+      );
     return data as T;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError")
