@@ -53,11 +53,19 @@
         <div id="views" class="views">
           <section id="status-view" class="view active" aria-labelledby="status-tab">
             <div id="status-card" class="status-card status-unknown">
-              <div id="status-icon" class="status-icon" aria-hidden="true">?</div>
               <p id="status-label" class="status-label">Status unavailable</p>
               <p id="return-time" class="return-time"></p>
               <p id="custom-message" class="custom-message"></p>
             </div>
+            <aside class="today-calendar" aria-labelledby="today-heading">
+              <div class="today-heading">
+                <p class="eyebrow">Schedule</p>
+                <h2 id="today-heading">Today</h2>
+                <p id="today-date"></p>
+              </div>
+              <ol id="today-events" class="today-events"></ol>
+              <p id="today-empty" class="today-empty" hidden>No events scheduled today.</p>
+            </aside>
           </section>
 
           <section id="calendar-view" class="view" aria-labelledby="calendar-tab" hidden>

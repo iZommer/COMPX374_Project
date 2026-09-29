@@ -92,11 +92,11 @@ export default function CalendarPage() {
         title="Your week at a glance"
         description="Keep your teaching, meetings and office hours together."
       />
-      <div className="calendar-toolbar">
-        <div className="week-controls">
+      <div className="flex justify-between items-center gap-4 mb-5 flex-wrap">
+        <div className="flex gap-2.5 items-center [&_h2]:text-[16px] [&_>_.secondary]:py-1.5 [&_>_.secondary]:px-[11px] [&_>_.secondary]:min-h-[35px] mobile:gap-[7px] mobile:flex-wrap mobile:[&_h2]:text-[14px]">
           <button
             aria-label="Previous week"
-            className="secondary"
+            className="secondary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-white border-[#d7e0e5] text-[#3c5064] [&:hover]:bg-[#f0f5f5]"
             onClick={() => setWeek(week.minus({ weeks: 1 }))}
           >
             ←
@@ -107,13 +107,13 @@ export default function CalendarPage() {
           </h2>
           <button
             aria-label="Next week"
-            className="secondary"
+            className="secondary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-white border-[#d7e0e5] text-[#3c5064] [&:hover]:bg-[#f0f5f5]"
             onClick={() => setWeek(week.plus({ weeks: 1 }))}
           >
             →
           </button>
           <button
-            className="text-button"
+            className="text-[12px] text-brand font-semibold py-2 px-0"
             onClick={() =>
               setWeek(DateTime.now().setZone(ZONE).startOf("week"))
             }
@@ -121,7 +121,7 @@ export default function CalendarPage() {
             This week
           </button>
         </div>
-        <div className="calendar-actions">
+        <div className="flex gap-2.5 items-center">
           <input
             ref={fileRef}
             className="sr-only"
@@ -132,14 +132,14 @@ export default function CalendarPage() {
             onChange={(e) => importFile(e.target.files?.[0])}
           />
           <button
-            className="secondary"
+            className="secondary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-white border-[#d7e0e5] text-[#3c5064] [&:hover]:bg-[#f0f5f5]"
             disabled={busy}
             onClick={() => fileRef.current?.click()}
           >
             {busy ? "Working…" : "↑ Import .ics"}
           </button>
           <button
-            className="primary"
+            className="primary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
             disabled={busy}
             onClick={() => setAdding(!adding)}
           >
@@ -149,12 +149,18 @@ export default function CalendarPage() {
       </div>
       <Notice message={message} error={failed} />
       {processing && (
-        <p role="status" className="notice">
+        <p
+          role="status"
+          className="my-4 mx-0 py-3 px-[15px] rounded-[7px] text-[12px] bg-[#eaf1f5] text-[#38566e] [&.success]:bg-[#ecf6f0] [&.success]:text-[#186e4b] [&.error]:bg-[#fff0ed] [&.error]:text-[#a43729]"
+        >
           Processing your timetable. This can take a few seconds…
         </p>
       )}
       {adding && (
-        <form className="panel event-form" onSubmit={createEvent}>
+        <form
+          className="bg-white border border-line rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] mb-[22px] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5 [&_fieldset]:grid [&_fieldset]:gap-[18px] [&_fieldset]:mt-5 [&_button]:justify-self-start"
+          onSubmit={createEvent}
+        >
           <h2>Add an event</h2>
           <fieldset disabled={busy}>
             <label>
@@ -166,7 +172,7 @@ export default function CalendarPage() {
                 placeholder="e.g. COMPX374 lecture"
               />
             </label>
-            <div className="two-columns">
+            <div className="grid grid-cols-2 gap-5 mobile:grid-cols-1">
               <label>
                 Starts
                 <input required type="datetime-local" name="start" />
@@ -176,8 +182,13 @@ export default function CalendarPage() {
                 <input required type="datetime-local" name="end" />
               </label>
             </div>
-            <p className="muted">All times are in Pacific/Auckland.</p>
-            <button disabled={busy} className="primary">
+            <p className="muted text-muted text-[12px]">
+              All times are in Pacific/Auckland.
+            </p>
+            <button
+              disabled={busy}
+              className="primary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
+            >
               {busy ? "Saving…" : "Save event"}
             </button>
           </fieldset>
@@ -186,14 +197,15 @@ export default function CalendarPage() {
       {!resource.data ? (
         <ResourceState {...resource} />
       ) : (
-        <section className="panel calendar-panel">
-          <div className="calendar-meta">
+        <section className="bg-white border border-line rounded-[11px] p-0 shadow-[0_3px_12px_#152e4304] overflow-hidden [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-0 mobile:p-0">
+          <div className="py-[18px] px-[22px] flex justify-between text-[10px] text-[#81918f] border-b border-b-line mobile:text-[8px] mobile:p-3.5">
             <span>
-              <span className="live-dot" /> Weekly diary
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#339d80] mr-1.5" />{" "}
+              Weekly diary
             </span>
             <span>New Zealand time · Pacific/Auckland</span>
           </div>
-          <div className="week-grid">
+          <div className="grid grid-cols-7 min-h-[390px] mobile:block">
             {Array.from({ length: 7 }, (_, index) => {
               const day = week.plus({ days: index });
               const events = resource.data!.filter(
@@ -205,7 +217,7 @@ export default function CalendarPage() {
               const today = day.hasSame(DateTime.now().setZone(ZONE), "day");
               return (
                 <section
-                  className={`day-column ${today ? "today" : ""}`}
+                  className={`border-r border-r-line min-w-0 [&:last-child]:border-0 [&_>_header]:h-[90px] [&_>_header]:text-center [&_>_header]:border-b [&_>_header]:border-b-line [&_>_header]:p-3 [&_>_header]:relative [&_>_header_>_span]:block [&_>_header_>_span]:uppercase [&_>_header_>_span]:tracking-[1.2px] [&_>_header_>_span]:text-[9px] [&_>_header_>_span]:text-[#83918f] [&_>_header_>_strong]:text-[23px] [&_>_header_>_strong]:font-medium [&_>_header_>_strong]:block [&_>_header_>_small]:text-[8px] [&_>_header_>_small]:text-brand [&_>_header_>_small]:block [&_>_header_>_small]:leading-[1] [&.today]:bg-[#f8fcfa] [&.today_header_strong]:text-brand mobile:border-0 mobile:border-b mobile:border-b-line mobile:grid mobile:grid-cols-[70px_1fr] mobile:[&_>_header]:h-auto mobile:[&_>_header]:border-0 mobile:[&_>_header]:min-h-[95px] mobile:[&_>_header]:py-[15px] mobile:[&_>_header]:px-1.5 ${today ? "today" : ""}`}
                   key={index}
                 >
                   <header>
@@ -213,11 +225,11 @@ export default function CalendarPage() {
                     <strong>{day.day}</strong>
                     {today && <small>Today</small>}
                   </header>
-                  <div className="day-events">
+                  <div className="p-2 mobile:min-h-20">
                     {events.length ? (
                       events.map((e) => (
                         <article
-                          className={`calendar-event ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
+                          className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_h3]:ml-0 [&_>_small]:text-[8px] [&_>_small]:text-[#7f928f] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
                           key={e.id}
                         >
                           <span>
@@ -239,7 +251,9 @@ export default function CalendarPage() {
                         </article>
                       ))
                     ) : (
-                      <p className="empty-day">No events</p>
+                      <p className="text-[10px] text-[#b0bac0] text-center mt-[30px] mobile:text-left mobile:my-[23px] mobile:mx-2.5">
+                        No events
+                      </p>
                     )}
                   </div>
                 </section>
@@ -247,7 +261,7 @@ export default function CalendarPage() {
             })}
           </div>
           {resource.data.length === 0 && (
-            <div className="calendar-empty">
+            <div className="text-center p-5 border-t border-t-line [&_p]:text-[12px] [&_p]:mt-1.5 mobile:text-left">
               <h3>A little breathing room</h3>
               <p>
                 No events this week. Add an event or import your timetable to
@@ -257,8 +271,11 @@ export default function CalendarPage() {
           )}
         </section>
       )}
-      <section className="info-panel">
-        <span className="info-icon" aria-hidden="true">
+      <section className="flex gap-[17px] items-start border border-[#dde7eb] bg-[#edf3f6] py-[21px] px-6 rounded-[9px] mt-[25px] [&_h3]:text-[13px] [&_p]:text-[11px] [&_p]:mt-1 [&_p]:leading-[1.8] mobile:p-[18px]">
+        <span
+          className="grid place-items-center w-[29px] h-[29px] rounded-full bg-[#dce8ef] text-[#486b82] font-bold shrink-0"
+          aria-hidden="true"
+        >
           i
         </span>
         <div>

@@ -227,25 +227,67 @@ function resetIdleTimer(): void {
 }
 
 const statusPresentation = {
-  AVAILABLE: { label: "Available", icon: "✓", className: "available" },
-  IN_A_MEETING: { label: "In a meeting", icon: "◆", className: "meeting" },
-  TEACHING: { label: "Teaching", icon: "▲", className: "teaching" },
-  OUT_OF_OFFICE: { label: "Out of office", icon: "—", className: "away" },
+  AVAILABLE: { label: "Available", className: "available" },
+  IN_A_MEETING: { label: "In a meeting", className: "meeting" },
+  TEACHING: { label: "Teaching", className: "teaching" },
+  OUT_OF_OFFICE: { label: "Out of office", className: "away" },
 } as const;
 
 function renderStatus(payload: DiaryPayload, settings: PublicSettings): void {
   const availability = payload.availability;
   const presentation = availability
     ? statusPresentation[availability.status]
-    : { label: "Status unavailable", icon: "?", className: "unknown" };
+    : { label: "Status unavailable", className: "unknown" };
   const card = $("#status-card");
   card.className = `status-card status-${presentation.className}`;
-  $("#status-icon").textContent = presentation.icon;
   $("#status-label").textContent = presentation.label;
   $("#return-time").textContent = availability?.expectedReturnTime
     ? `Expected back ${formatDate(availability.expectedReturnTime, settings.timezone)} at ${formatTime(availability.expectedReturnTime, settings.timezone)}`
     : "";
   $("#custom-message").textContent = availability?.customMessage || "";
+}
+
+function renderTodayCalendar(payload: DiaryPayload, settings: PublicSettings): void {
+  const now = new Date();
+  const dateFormatter = new Intl.DateTimeFormat("en-NZ", {
+    timeZone: settings.timezone, year: "numeric", month: "2-digit", day: "2-digit",
+  });
+  const dateKey = (value: string | Date) => {
+    const parts = Object.fromEntries(dateFormatter.formatToParts(new Date(value)).map((part) => [part.type, part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
+  const today = dateKey(now);
+  const events = payload.calendar.filter((event) =>
+    dateKey(event.startTime) <= today && dateKey(new Date(Date.parse(event.endTime) - 1)) >= today,
+  ).sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime));
+  $("#today-date").textContent = formatDate(now, settings.timezone);
+  const list = $("#today-events");
+  const scrollTop = list.scrollTop;
+  list.replaceChildren();
+  $("#today-empty").hidden = events.length > 0;
+  list.hidden = events.length === 0;
+  for (const event of events) {
+    const item = document.createElement("li");
+    item.className = "today-event";
+    const ongoing = !state?.clockWarning && Date.parse(event.startTime) <= now.getTime() && Date.parse(event.endTime) > now.getTime();
+    item.classList.toggle("is-current", ongoing);
+    const time = document.createElement("p");
+    time.className = "today-event-time";
+    const start = dateKey(event.startTime) < today ? "Earlier" : formatTime(event.startTime, settings.timezone);
+    const end = dateKey(event.endTime) > today ? "Tomorrow" : formatTime(event.endTime, settings.timezone);
+    time.textContent = `${start} – ${end}`;
+    const title = document.createElement("h3");
+    title.textContent = event.title;
+    item.append(time, title);
+    if (ongoing) {
+      const badge = document.createElement("span");
+      badge.className = "today-event-now";
+      badge.textContent = "Now";
+      item.append(badge);
+    }
+    list.append(item);
+  }
+  list.scrollTop = scrollTop;
 }
 
 function renderCalendar(payload: DiaryPayload, settings: PublicSettings): void {
@@ -398,6 +440,7 @@ async function render(next: DisplayState): Promise<void> {
   }
   const { generatedAt: _transportTimestamp, ...displayData } = next.payload;
   const signature = JSON.stringify(displayData);
+  renderTodayCalendar(next.payload, next.settings);
   if (signature !== lastPayloadSignature) {
     lastPayloadSignature = signature;
     renderStatus(next.payload, next.settings);
@@ -518,6 +561,7 @@ function updateClock(): void {
     minute: "2-digit",
   }).format(new Date());
   updateCalendarNowLine(state.settings);
+  if (state.payload) renderTodayCalendar(state.payload, state.settings);
   updateDimming(state.settings);
 }
 
