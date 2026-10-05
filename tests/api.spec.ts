@@ -142,6 +142,7 @@ describe("authorization boundary", () => {
         title: "Meeting",
         startTime: "2026-09-24T00:00:00Z",
         endTime: "2026-09-24T01:00:00Z",
+        status: "IN_A_MEETING",
       }),
     );
     expect(mocks.calendarEvent.create.mock.calls[0][0].data.academicId).toBe(
@@ -206,7 +207,9 @@ describe("display contract", () => {
   it("returns only visitor fields and disables caching", async () => {
     mocks.displayAssociation.findUnique.mockResolvedValue({
       academic: {
+        id: "academic-a",
         name: "Nic",
+        displaySettings: null,
         availability: { status: "AVAILABLE" },
         events: [],
         contact: { email: "visitor@example.org" },
@@ -214,6 +217,7 @@ describe("display contract", () => {
         email: "login@example.org",
       },
     });
+    mocks.calendarEvent.findMany.mockResolvedValue([]);
     const response = await latest(request("display/key/latest"), {
       params: Promise.resolve({ apiKey: "b".repeat(64) }),
     });
