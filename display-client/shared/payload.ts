@@ -18,6 +18,7 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
+  status?: AvailabilityStatus;
   source?: string;
 }
 
@@ -86,6 +87,9 @@ export function validateDiaryPayload(input: unknown): ValidationResult {
       typeof event.title !== "string" ||
       !isDate(event.startTime) ||
       !isDate(event.endTime) ||
+      (event.status !== undefined &&
+        (typeof event.status !== "string" ||
+          !availabilityStatuses.includes(event.status as AvailabilityStatus))) ||
       Date.parse(event.endTime) <= Date.parse(event.startTime)
     )
       return { ok: false, error: "A calendar event is malformed." };

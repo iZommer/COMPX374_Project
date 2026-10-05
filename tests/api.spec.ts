@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   academic: { findUnique: vi.fn(), create: vi.fn() },
   availabilityStatus: { findUnique: vi.fn(), update: vi.fn() },
   contactInfo: { findUnique: vi.fn(), update: vi.fn() },
-  calendarEvent: { findMany: vi.fn(), create: vi.fn(), createMany: vi.fn() },
+  calendarEvent: { findMany: vi.fn(), create: vi.fn(), createMany: vi.fn(), updateMany: vi.fn() },
   displayAssociation: { findUnique: vi.fn(), update: vi.fn() },
 }));
 vi.mock("@/lib/admin", () => ({

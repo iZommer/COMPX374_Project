@@ -1,7 +1,9 @@
 import { z } from "zod";
 export const availabilityInput = z
   .object({
-    status: z.enum(["AVAILABLE", "IN_A_MEETING", "TEACHING", "OUT_OF_OFFICE"]),
+    status: z
+      .enum(["AVAILABLE", "IN_A_MEETING", "TEACHING", "OUT_OF_OFFICE"])
+      .default("IN_A_MEETING"),
     expectedReturnTime: z.string().datetime({ offset: true }).nullable(),
     customMessage: z.string().trim().max(200).nullable(),
   })
@@ -18,6 +20,7 @@ export const eventInput = z
     title: z.string().trim().min(1).max(200),
     startTime: z.string().datetime({ offset: true }),
     endTime: z.string().datetime({ offset: true }),
+    status: z.enum(["AVAILABLE", "IN_A_MEETING", "TEACHING", "OUT_OF_OFFICE"]),
   })
   .strict()
   .refine((e) => new Date(e.endTime) > new Date(e.startTime), {

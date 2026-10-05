@@ -1,0 +1,2 @@
+ALTER TABLE "CalendarEvent"
+ADD COLUMN "status" "Status" NOT NULL DEFAULT 'IN_A_MEETING';

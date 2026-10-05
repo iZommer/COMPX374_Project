@@ -38,6 +38,7 @@ export async function GET(
                 title: true,
                 startTime: true,
                 endTime: true,
+                status: true,
                 source: true,
               },
             },
@@ -47,13 +48,30 @@ export async function GET(
     });
     if (!association) throw new HttpError(404, "Display key not found.");
     const a = association.academic;
+    // An event currently in progress takes precedence over the manually set
+    // status for the display. Once it ends, the saved manual status resumes.
+    const now = new Date();
+    const nowMs = now.getTime();
+    const currentEvent = a.events.find(
+      (event) =>
+        new Date(event.startTime).getTime() <= nowMs &&
+        new Date(event.endTime).getTime() > nowMs,
+    );
+    const availability = currentEvent
+      ? {
+          status: currentEvent.status,
+          expectedReturnTime: new Date(currentEvent.endTime).toISOString(),
+          customMessage: currentEvent.title,
+          updatedAt: now,
+        }
+      : a.availability;
     return json({
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),
       timezone: ZONE,
       week,
       academic: { name: a.name },
-      availability: a.availability,
+      availability,
       calendar: a.events,
       contact: a.contact,
     });

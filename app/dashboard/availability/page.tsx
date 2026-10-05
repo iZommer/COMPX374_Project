@@ -261,8 +261,9 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
           <h3>Keep everyone in the loop</h3>
           <p>
             Saved changes are available immediately through your display API.
-            Availability is set manually and does not change automatically with
-            your calendar.
+            Your saved availability is used by default. While a calendar event
+            is in progress, the display shows that event’s selected status;
+            your saved availability resumes when it ends.
           </p>
         </div>
       </section>

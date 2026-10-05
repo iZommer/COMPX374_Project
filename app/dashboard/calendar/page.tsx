@@ -14,14 +14,24 @@ type Event = {
   title: string;
   startTime: string;
   endTime: string;
+  status: "AVAILABLE" | "IN_A_MEETING" | "TEACHING" | "OUT_OF_OFFICE";
   source: string;
 };
+const eventStatuses = [
+  ["AVAILABLE", "Available"],
+  ["IN_A_MEETING", "In a meeting"],
+  ["TEACHING", "Teaching"],
+  ["OUT_OF_OFFICE", "Out of office"],
+] as const;
+const localDateTime = (value: string) =>
+  DateTime.fromISO(value).setZone(ZONE).toFormat("yyyy-MM-dd'T'HH:mm");
 export default function CalendarPage() {
   const [week, setWeek] = useState(() =>
     DateTime.now().setZone(ZONE).startOf("week"),
   );
   const resource = useResource<Event[]>(`calendar?week=${week.toISODate()}`);
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Event | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -56,7 +66,7 @@ export default function CalendarPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   }
-  async function createEvent(e: React.FormEvent<HTMLFormElement>) {
+  async function saveEvent(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     setBusy(true);
@@ -67,15 +77,18 @@ export default function CalendarPage() {
       const end = String(form.get("end"));
       if (end <= start) throw new Error("End time must be after start time.");
       await api("calendar", {
-        method: "POST",
+        method: editing ? "PUT" : "POST",
         body: JSON.stringify({
+          ...(editing ? { id: editing.id } : {}),
           title: form.get("title"),
           startTime: localToISO(start),
           endTime: localToISO(end),
+          status: form.get("status"),
         }),
       });
-      setMessage("Event added to your diary.");
+      setMessage(editing ? "Event updated." : "Event added to your diary.");
       setAdding(false);
+      setEditing(null);
       setWeek(DateTime.fromISO(start, { zone: ZONE }).startOf("week"));
       resource.retry();
     } catch (e) {
@@ -141,7 +154,7 @@ export default function CalendarPage() {
           <button
             className="primary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
             disabled={busy}
-            onClick={() => setAdding(!adding)}
+            onClick={() => { setAdding(!adding); setEditing(null); }}
           >
             {adding ? "Close form" : "+ Add event"}
           </button>
@@ -156,12 +169,13 @@ export default function CalendarPage() {
           Processing your timetable. This can take a few seconds…
         </p>
       )}
-      {adding && (
+      {(adding || editing) && (
         <form
+          key={editing?.id ?? "new-event"}
           className="bg-white border border-line rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] mb-[22px] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5 [&_fieldset]:grid [&_fieldset]:gap-[18px] [&_fieldset]:mt-5 [&_button]:justify-self-start"
-          onSubmit={createEvent}
+          onSubmit={saveEvent}
         >
-          <h2>Add an event</h2>
+          <h2>{editing ? "Edit event" : "Add an event"}</h2>
           <fieldset disabled={busy}>
             <label>
               Event title
@@ -170,18 +184,37 @@ export default function CalendarPage() {
                 name="title"
                 maxLength={200}
                 placeholder="e.g. COMPX374 lecture"
+                defaultValue={editing?.title ?? ""}
               />
             </label>
             <div className="grid grid-cols-2 gap-5 mobile:grid-cols-1">
               <label>
                 Starts
-                <input required type="datetime-local" name="start" />
+                <input
+                  required
+                  type="datetime-local"
+                  name="start"
+                  defaultValue={editing ? localDateTime(editing.startTime) : ""}
+                />
               </label>
               <label>
                 Ends
-                <input required type="datetime-local" name="end" />
+                <input
+                  required
+                  type="datetime-local"
+                  name="end"
+                  defaultValue={editing ? localDateTime(editing.endTime) : ""}
+                />
               </label>
             </div>
+            <label>
+              Display status during this event
+              <select name="status" defaultValue={editing?.status ?? "IN_A_MEETING"}>
+                {eventStatuses.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
             <p className="muted text-muted text-[12px]">
               All times are in Pacific/Auckland.
             </p>
@@ -189,7 +222,7 @@ export default function CalendarPage() {
               disabled={busy}
               className="primary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
             >
-              {busy ? "Saving…" : "Save event"}
+              {busy ? "Saving…" : editing ? "Save changes" : "Save event"}
             </button>
           </fieldset>
         </form>
@@ -246,8 +279,20 @@ export default function CalendarPage() {
                           <small>
                             {e.source === "ICS_IMPORT"
                               ? "Imported"
-                              : "Manual event"}
+                              : "Manual event"} · {eventStatuses.find(([value]) => value === e.status)?.[1] ?? "In a meeting"}
                           </small>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            className="mt-2 text-[10px] font-semibold text-brand underline"
+                            onClick={() => {
+                              setAdding(false);
+                              setEditing(e);
+                              setMessage("");
+                            }}
+                          >
+                            Edit event
+                          </button>
                         </article>
                       ))
                     ) : (
@@ -283,7 +328,7 @@ export default function CalendarPage() {
           <p>
             Import .ics files up to 1 MB. Recurring events are expanded from
             last month through the next year; existing occurrences are skipped.
-            Calendar events do not change your availability.
+            When an event is in progress, its selected status appears on the display. Your manually saved availability resumes when the event ends.
           </p>
         </div>
       </section>

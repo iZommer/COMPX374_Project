@@ -35,3 +35,17 @@ export const POST = route(async (req) => {
     201,
   );
 });
+export const PUT = route(async (req) => {
+  const a = await academicFor(req);
+  const input = await body(req);
+  if (!input || typeof input !== "object" || !("id" in input) || typeof input.id !== "string")
+    throw new HttpError(400, "Event ID is required.");
+  const { id, ...eventData } = input as { id: string; [key: string]: unknown };
+  const data = eventInput.parse(eventData);
+  const result = await db.calendarEvent.updateMany({
+    where: { id, academicId: a.id },
+    data,
+  });
+  if (!result.count) throw new HttpError(404, "Calendar event not found.");
+  return json({ ok: true });
+});

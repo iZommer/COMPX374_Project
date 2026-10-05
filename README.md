@@ -43,7 +43,8 @@ Academic routes require `Authorization: Bearer <Firebase ID token>`. JSON mutati
 | GET    | `/api/availability`             | Current availability                                                |
 | PUT    | `/api/availability`             | `{status, expectedReturnTime, customMessage}`; saved record         |
 | GET    | `/api/calendar?week=2026-09-21` | Events overlapping selected Auckland week; defaults to current week |
-| POST   | `/api/calendar`                 | `{title, startTime, endTime}`; created manual event (201)           |
+| POST   | `/api/calendar`                 | `{title, startTime, endTime, status?}`; created manual event (201)   |
+| PUT    | `/api/calendar`                 | `{id, title, startTime, endTime, status}`; updates an owned event   |
 | POST   | `/api/calendar/import`          | Raw .ics bytes as `text/calendar`; `{imported, skipped, message}`   |
 | GET    | `/api/contact`                  | Visitor contact details                                             |
 | PUT    | `/api/contact`                  | `{email, phone, officeLocation}`; saved record                      |
@@ -51,7 +52,7 @@ Academic routes require `Authorization: Bearer <Firebase ID token>`. JSON mutati
 | POST   | `/api/display-key`              | No body; rotate key and return `{apiKey, pairedAt}`                 |
 | GET    | `/api/display/<apiKey>/latest`  | Public read-only payload below; no Firebase token                   |
 
-Status is `AVAILABLE`, `IN_A_MEETING`, `TEACHING`, or `OUT_OF_OFFICE`. Expected return is an ISO 8601 timestamp with offset or null; message is at most 200 characters or null. Event timestamps require an offset and end after start. Contact email is required; phone/office may be empty strings. The display QR encodes the **raw key**, not a URL.
+Status is `AVAILABLE`, `IN_A_MEETING`, `TEACHING`, or `OUT_OF_OFFICE`. Expected return is an ISO 8601 timestamp with offset or null; message is at most 200 characters or null. Calendar events use the same status values and default to `IN_A_MEETING`. During an active event, its status, title, and end time override the manually saved availability on the display; the saved availability resumes when the event ends. Event timestamps require an offset and end after start. Contact email is required; phone/office may be empty strings. The display QR encodes the **raw key**, not a URL.
 
 Example display response:
 

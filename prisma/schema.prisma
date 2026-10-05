@@ -43,6 +43,7 @@ model CalendarEvent {
   title String
   startTime DateTime
   endTime DateTime
+  status Status @default(IN_A_MEETING)
   source EventSource @default(MANUAL)
   importKey String?
   @@unique([academicId, importKey])
