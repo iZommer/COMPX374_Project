@@ -17,14 +17,14 @@ const statuses = [
     label: "Available",
     hint: "Happy to be interrupted",
     icon: "✓",
-    color: "[--status:#087f5b] [--tint:#dff1e5] [--pale:#f0f8f3]",
+    color: "[--status:var(--status-available)] [--tint:var(--status-available-tint)] [--pale:#f0f8f3]",
   },
   {
     id: "IN_A_MEETING",
     label: "In a meeting",
     hint: "Please come back later",
     icon: "−",
-    color: "[--status:#c9534b] [--tint:#fbe2dd] [--pale:#fff5f3]",
+    color: "[--status:var(--status-meeting)] [--tint:var(--status-meeting-tint)] [--pale:#fff5f3]",
   },
   {
     id: "TEACHING",
@@ -38,7 +38,7 @@ const statuses = [
     label: "Out of office",
     hint: "Away from my desk",
     icon: "◷",
-    color: "[--status:#65778a] [--tint:#e7edf1] [--pale:#f4f6f8]",
+    color: "[--status:var(--status-away)] [--tint:var(--status-away-tint)] [--pale:#f4f6f8]",
   },
 ];
 type Availability = {
@@ -132,7 +132,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
   const [feedback, setFeedback] = useState("");
   const [failed, setFailed] = useState(false);
   const [dirty, setDirty] = useState(false);
-  const selected = statuses.find((s) => s.id === status)!;
+  const selected = statuses.find((s) => s.id === (overrideStatus || status))!;
   const effective = initial.effectiveAvailability;
   const effectivePresentation =
     statuses.find((s) => s.id === effective.status) ?? statuses[3];
@@ -169,6 +169,15 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
       setBusy(false);
     }
   }
+  async function clearOverrideNow() {
+    setBusy(true); setFeedback(""); setFailed(false);
+    try {
+      await api("availability", { method: "PUT", body: JSON.stringify({ status, expectedReturnTime: returnTime ? localToISO(returnTime) : null, customMessage: message || null, overrideStatus: null, overrideUntil: null, overrideMessage: null }) });
+      setOverrideStatus(""); setOverrideUntil(""); setOverrideMessage(""); setDirty(false);
+      setFeedback("Override cleared. Calendar status is active again."); onSaved();
+    } catch (e) { setFailed(true); setFeedback(errorText(e)); }
+    finally { setBusy(false); }
+  }
   return (
     <>
       <section className={`mb-6 rounded-xl border p-5 shadow-[0_3px_12px_#152e4304] mobile:p-4 ${effectivePresentation.color}`}>
@@ -203,8 +212,8 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
         >
           <div className="flex gap-3 justify-between items-start mb-[23px] [&_p]:mt-[5px] [&_p]:text-[12px] mobile:flex-wrap">
             <div>
-              <h2>Saved availability</h2>
-              <p>This is used when there is no active override or calendar event.</p>
+              <h2>Availability override</h2>
+              <p>Choose Available or Out of Office. This state takes priority over calendar events until its end time.</p>
             </div>
             <span className="py-1 px-[9px] rounded-[4px] bg-[#f1f6f4] text-[#628377] text-[9px] whitespace-nowrap">
               {dirty ? "Unsaved changes" : "Up to date"}
@@ -212,7 +221,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
           </div>
           <fieldset disabled={busy}>
             <legend className="sr-only">Choose your availability</legend>
-            <div className="grid grid-cols-4 gap-[11px] mobile:grid-cols-2">
+            <div className="hidden grid-cols-4 gap-[11px] mobile:grid-cols-2">
                 {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => (
                 <button
                   type="button"
@@ -243,8 +252,8 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 </button>
               ))}
             </div>
-            <div className="h-[1px] bg-line my-[25px] mx-0" />
-            <label>
+            <div className="hidden h-[1px] bg-line my-[25px] mx-0" />
+            <label className="hidden">
               When will you be back?{" "}
               <span className="text-[10px] text-[#8a97a3] font-normal ml-[7px]">
                 Optional
@@ -261,19 +270,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 }}
               />
             </label>
-            {returnTime && (
-              <button
-                type="button"
-                className="text-[12px] text-brand font-semibold py-2 px-0"
-                onClick={() => {
-                  setReturnTime("");
-                  change();
-                }}
-              >
-                Clear return time
-              </button>
-            )}
-            <label className="mt-6">
+            <label className="hidden mt-6">
               Add a message{" "}
               <span className="text-[10px] text-[#8a97a3] font-normal ml-[7px]">
                 Optional
@@ -295,9 +292,9 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
             <div className="mt-7 rounded-xl border border-[#d7e7e1] bg-[#f4faf7] p-5 mobile:p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-[14px] font-bold text-ink">Force a temporary status</h3>
+                  <h3 className="text-[14px] font-bold text-ink">Set status</h3>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                    This overrides a calendar event on the display until the time you choose. The active event takes over again after it expires.
+                    The calendar controls your status again when this override expires.
                   </p>
                 </div>
                 {overrideStatus && (
@@ -306,23 +303,10 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 mobile:grid-cols-1">
                 <label className="!mt-0">
-                  Force status
-                  <select
-                    value={overrideStatus}
-                    onChange={(e) => {
-                      setOverrideStatus(e.target.value);
-                      if (e.target.value && !overrideUntil)
-                        setOverrideUntil(DateTime.now().setZone("Pacific/Auckland").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm"));
-                      if (!e.target.value) {
-                        setOverrideUntil("");
-                        setOverrideMessage("");
-                      }
-                      change();
-                    }}
-                  >
-                    <option value="">No override</option>
-                    {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-                  </select>
+                  Temporary status override
+                  <span className="mt-2 flex gap-2">
+                    {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => <button key={s.id} type="button" aria-pressed={overrideStatus === s.id} className={`min-h-11 flex-1 rounded-md border px-3 text-sm ${overrideStatus === s.id ? "border-brand bg-brand text-white" : "border-line bg-white text-ink"}`} onClick={() => { setOverrideStatus(s.id); setOverrideUntil(DateTime.now().setZone("Pacific/Auckland").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")); change(); }}>{s.label}</button>)}
+                  </span>
                 </label>
                 <label className="!mt-0">
                   Keep override until
@@ -349,12 +333,13 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 <button
                   type="button"
                   className="mt-2 text-[11px] font-semibold text-brand underline"
-                  onClick={() => { setOverrideStatus(""); setOverrideUntil(""); setOverrideMessage(""); change(); }}
-                >Clear force status</button>
+                  onClick={clearOverrideNow}
+                  disabled={busy}
+                >Clear override</button>
               )}
             </div>
             <p className="text-right text-[10px] mt-[5px]">
-              {message.length}/200
+              {overrideMessage.length}/200
             </p>
             <div className="flex gap-4 items-center mt-5 [&_.muted]:text-[10px] mobile:items-start mobile:flex-col">
               <button
@@ -390,15 +375,15 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
               <div>
                 <strong>{selected.label}</strong>
                 <span>
-                  {returnTime
-                    ? `Expected back ${returnTime.replace("T", " at ")}`
+                  {overrideStatus && overrideUntil
+                    ? `Until ${overrideUntil.replace("T", " at ")}`
                     : selected.hint}
                 </span>
               </div>
             </div>
-            {message && (
+            {overrideMessage && (
               <p className="text-[13px] mt-[22px] whitespace-pre-wrap [overflow-wrap:anywhere]">
-                {message}
+                {overrideMessage}
               </p>
             )}
             <div
