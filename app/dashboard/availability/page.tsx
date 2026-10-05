@@ -184,14 +184,14 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 {initial.effectiveSource === "calendar"
                   ? `From current calendar event${initial.activeEventTitle ? `: ${initial.activeEventTitle}` : ""}`
                   : initial.effectiveSource === "override"
-                    ? "Your temporary force status is active"
+                    ? `Override active · Set ${localInput(initial.updatedAt).replace("T", " ")}`
                     : "Using your saved availability"}
               </p>
             </div>
           </div>
           {effective.expectedReturnTime && (
             <span className="rounded-full bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-ink">
-              Until {localInput(effective.expectedReturnTime).replace("T", " ")}
+              Ends {localInput(effective.expectedReturnTime).replace("T", " ")}
             </span>
           )}
         </div>
