@@ -46,8 +46,15 @@ type Availability = {
   overrideUntil: string | null;
   overrideMessage: string | null;
   updatedAt: string;
+  effectiveAvailability: {
+    status: string;
+    expectedReturnTime: string | null;
+    customMessage: string | null;
+  };
+  effectiveSource: "override" | "calendar" | "saved";
+  activeEventTitle: string | null;
 };
-function AvailabilityForm({ initial }: { initial: Availability }) {
+function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved: () => void }) {
   const [status, setStatus] = useState(initial.status);
   const [returnTime, setReturnTime] = useState(
     initial.expectedReturnTime ? localInput(initial.expectedReturnTime) : "",
@@ -63,6 +70,9 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
   const [failed, setFailed] = useState(false);
   const [dirty, setDirty] = useState(false);
   const selected = statuses.find((s) => s.id === status)!;
+  const effective = initial.effectiveAvailability;
+  const effectivePresentation =
+    statuses.find((s) => s.id === effective.status) ?? statuses[3];
   const change = () => {
     setDirty(true);
     setFeedback("");
@@ -88,6 +98,7 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
         "Availability saved. Your latest information is ready for your display.",
       );
       setDirty(false);
+      onSaved();
     } catch (e) {
       setFailed(true);
       setFeedback(errorText(e));
@@ -97,6 +108,31 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
   }
   return (
     <>
+      <section className={`mb-6 rounded-xl border p-5 shadow-[0_3px_12px_#152e4304] mobile:p-4 ${effectivePresentation.color}`}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-full bg-[var(--tint)] text-[23px] text-[var(--status)]" aria-hidden="true">
+              {effectivePresentation.icon}
+            </span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[1.4px] text-muted">Status shown right now</p>
+              <h2 className="mt-1 text-[20px] text-[var(--status)]">{effectivePresentation.label}</h2>
+              <p className="mt-1 text-[11px]">
+                {initial.effectiveSource === "calendar"
+                  ? `From current calendar event${initial.activeEventTitle ? `: ${initial.activeEventTitle}` : ""}`
+                  : initial.effectiveSource === "override"
+                    ? "Your temporary force status is active"
+                    : "Using your saved availability"}
+              </p>
+            </div>
+          </div>
+          {effective.expectedReturnTime && (
+            <span className="rounded-full bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-ink">
+              Until {localInput(effective.expectedReturnTime).replace("T", " ")}
+            </span>
+          )}
+        </div>
+      </section>
       <div className="grid grid-cols-[minmax(0,_1.85fr)_minmax(260px,_1fr)] gap-[22px] compact:grid-cols-1">
         <form
           className="bg-white border border-line rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5"
@@ -104,8 +140,8 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
         >
           <div className="flex gap-3 justify-between items-start mb-[23px] [&_p]:mt-[5px] [&_p]:text-[12px] mobile:flex-wrap">
             <div>
-              <h2>Current status</h2>
-              <p>Let visitors know when you’re free.</p>
+              <h2>Saved availability</h2>
+              <p>This is used when there is no active override or calendar event.</p>
             </div>
             <span className="py-1 px-[9px] rounded-[4px] bg-[#f1f6f4] text-[#628377] text-[9px] whitespace-nowrap">
               {dirty ? "Unsaved changes" : "Up to date"}
@@ -350,7 +386,7 @@ export default function AvailabilityPage() {
         description="A quick update makes it easier for others to find you."
       />
       {resource.data ? (
-        <AvailabilityForm initial={resource.data} />
+        <AvailabilityForm initial={resource.data} onSaved={resource.retry} />
       ) : (
         <ResourceState {...resource} />
       )}
