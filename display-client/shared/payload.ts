@@ -37,6 +37,18 @@ export interface DiaryPayload {
   availability?: Availability | null;
   calendar: CalendarEvent[];
   contact?: ContactInfo | null;
+  displaySettings?: {
+    timezone: string;
+    textScale: "normal" | "large" | "largest";
+    highContrast: boolean;
+    pixelShiftEnabled: boolean;
+    idleReturnSeconds: number;
+    staleAfterHours: number;
+    dimStartHour: number | null;
+    dimEndHour: number | null;
+    dimLevel: number;
+    timeFormat24h: boolean;
+  };
 }
 
 export type ValidationResult =
@@ -104,6 +116,11 @@ export function validateDiaryPayload(input: unknown): ValidationResult {
       !optionalString(input.contact.officeLocation)
     )
       return { ok: false, error: "contact fields must be strings." };
+  }
+  if (input.displaySettings !== undefined) {
+    const settings = input.displaySettings;
+    if (!isObject(settings) || typeof settings.timezone !== "string" || !["normal", "large", "largest"].includes(String(settings.textScale)) || typeof settings.highContrast !== "boolean" || typeof settings.pixelShiftEnabled !== "boolean" || typeof settings.timeFormat24h !== "boolean" || !Number.isInteger(settings.idleReturnSeconds) || Number(settings.idleReturnSeconds) < 10 || Number(settings.idleReturnSeconds) > 3600 || !Number.isInteger(settings.staleAfterHours) || Number(settings.staleAfterHours) < 1 || Number(settings.staleAfterHours) > 720 || !(settings.dimStartHour === null || (Number.isInteger(settings.dimStartHour) && Number(settings.dimStartHour) >= 0 && Number(settings.dimStartHour) <= 23)) || !(settings.dimEndHour === null || (Number.isInteger(settings.dimEndHour) && Number(settings.dimEndHour) >= 0 && Number(settings.dimEndHour) <= 23)) || !Number.isInteger(settings.dimLevel) || Number(settings.dimLevel) < 10 || Number(settings.dimLevel) > 100)
+      return { ok: false, error: "displaySettings is invalid." };
   }
   if (input.week !== undefined) {
     if (!isObject(input.week) || !isDate(input.week.start) || !isDate(input.week.end))

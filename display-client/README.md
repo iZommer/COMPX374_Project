@@ -56,7 +56,7 @@ Use a key other than `test-key` to simulate a 404/revoked key. Return to normal 
 
 ## Configuration and pairing
 
-Copy `.env.example` to `.env` for development or edit `/etc/where-is-nic.env` on the Pi. Never commit a real display key. Environment values provide defaults. Values entered during setup are stored in `DATA_DIR/config.json` and take precedence.
+Copy `.env.example` to `.env` for development or edit `/etc/where-is-nic.env` on the Pi. Never commit a real display key. Environment values provide defaults. Values entered during setup are stored in `DATA_DIR/config.json`.
 
 Obtain the API key from the Academic Web Application at `/dashboard/display`. On first boot:
 
@@ -67,6 +67,8 @@ Obtain the API key from the Academic Web Application at `/dashboard/display`. On
 The production URL must be publicly reachable by the Pi. Disable Vercel Deployment Protection for the production route or configure the production deployment so an unauthenticated GET returns JSON rather than a login page.
 
 To open protected settings, press and hold the invisible top-left corner for five seconds. This panel controls text size, high contrast, pixel shifting, idle return, and re-pairing. Re-pairing removes the stored key and returns to setup. The local reset route is bound to loopback and is not reachable from another device.
+
+Display preferences saved in the Academic Web Application win over environment and hidden-menu values. The Pi applies server changes on its next successful poll (normally within 10 seconds). The local menu remains a fallback when the server payload has no settings; local changes are retained on the Pi but are overridden when server preferences arrive. This keeps local control available during setup while making the server the source of truth for paired displays.
 
 ## Build and test
 
@@ -168,7 +170,7 @@ Use Raspberry Pi OS Screen Configuration first. For X11 panels, inspect `xinput 
 |---|---|---|
 | FR-09 client side | Read-only validated `/api/display/{apiKey}/latest` polling | Security, interoperability, reliability |
 | FR-10 Current Status | Large labelled status, distinct symbol/shape and colour-safe palette, return time/message | 4.1 performance, 4.8 accessibility |
-| FR-11 Weekly Calendar | Seven-day grid, now/today styling, overlaps, overnight splitting, DST-aware wall time | 4.1, 4.4, 4.8 |
+| FR-11 Weekly Calendar | Monday–Friday grid, now/today styling, overlaps, overnight splitting, DST-aware wall time | 4.1, 4.4, 4.8 |
 | FR-12 Contact Information | Email, phone, office with empty-state handling | 4.4, 4.8 |
 | FR-13 QR contact sharing | Offline vCard 3.0 QR with quiet zone and high contrast | 4.5 standard format, 4.7 offline |
 | FR-14 Display navigation | Persistent tabs, horizontal swipe, idle return, views kept mounted | 4.1 response time, 4.8 touch usability |

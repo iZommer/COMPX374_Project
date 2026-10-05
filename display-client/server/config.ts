@@ -46,6 +46,8 @@ export function loadRuntimeConfig(): RuntimeConfig {
       pixelShiftEnabled: process.env.PIXEL_SHIFT_ENABLED !== "false",
       dimStartHour: optionalHour("DIM_START_HOUR", 19),
       dimEndHour: optionalHour("DIM_END_HOUR", 7),
+      dimLevel: numberFromEnv("DIM_LEVEL", 55, 10, 100),
+      timeFormat24h: true,
     },
   };
 }
@@ -63,6 +65,8 @@ export function mergeSettings(
     pixelShiftEnabled: stored?.pixelShiftEnabled ?? defaults.pixelShiftEnabled,
     dimStartHour: stored?.dimStartHour ?? defaults.dimStartHour,
     dimEndHour: stored?.dimEndHour ?? defaults.dimEndHour,
+    dimLevel: stored?.dimLevel ?? defaults.dimLevel,
+    timeFormat24h: stored?.timeFormat24h ?? defaults.timeFormat24h,
   };
 }
 

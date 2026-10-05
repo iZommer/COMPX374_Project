@@ -18,6 +18,8 @@ const cachePath = path.join(runtime.dataDir, "cache.json");
 let storedConfig = await readStoredConfig(configPath);
 const cached = await readCache(cachePath);
 const clients = new Set<Response>();
+let serverSettings: Partial<PublicSettings> | null = cached?.payload.displaySettings ?? null;
+const effectiveSettings = () => mergeSettings(runtime.defaultSettings, serverSettings ? { ...(storedConfig ?? {}), ...serverSettings } : storedConfig);
 
 const credentials = () => {
   const apiKey = storedConfig && Object.hasOwn(storedConfig, "apiKey")
@@ -37,16 +39,16 @@ let state: DisplayState = {
   staleness: getStaleness(
     cached?.lastSuccessAt ?? null,
     false,
-    mergeSettings(runtime.defaultSettings, storedConfig).staleAfterHours,
+    effectiveSettings().staleAfterHours,
   ),
   clockWarning: new Date().getFullYear() < 2024,
   setupDefaultUrl: credentials() ? undefined : runtime.defaultServerUrl,
-  settings: mergeSettings(runtime.defaultSettings, storedConfig),
+  settings: effectiveSettings(),
 };
 let lastBroadcast = "";
 
 function publicState(): DisplayState {
-  const settings = mergeSettings(runtime.defaultSettings, storedConfig);
+  const settings = effectiveSettings();
   return {
     ...state,
     settings,
@@ -69,6 +71,7 @@ function broadcast(force = false): void {
 
 async function handlePollResult(result: FetchResult): Promise<void> {
   if (result.kind === "success") {
+    serverSettings = result.payload.displaySettings ?? null;
     const now = new Date().toISOString();
     const cache: CacheRecord = { payload: result.payload, lastSuccessAt: now };
     await atomicWriteJson(cachePath, cache);
@@ -163,7 +166,7 @@ app.post("/local/settings", async (request, response) => {
     next.idleReturnSeconds = Math.min(3600, Math.max(10, Math.round(body.idleReturnSeconds)));
   storedConfig = next;
   await atomicWriteJson(configPath, storedConfig);
-  state = { ...state, settings: mergeSettings(runtime.defaultSettings, storedConfig) };
+  state = { ...state, settings: effectiveSettings() };
   broadcast(true);
   return response.json({ ok: true, settings: state.settings });
 });

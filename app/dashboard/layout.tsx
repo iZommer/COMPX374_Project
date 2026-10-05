@@ -10,6 +10,7 @@ const links = [
   ["calendar", "▦", "Calendar"],
   ["contact", "▤", "Contact details"],
   ["display", "▣", "Display setup"],
+  ["display-settings", "⚙", "Display settings"],
 ];
 export default function DashboardLayout({
   children,

@@ -9,6 +9,12 @@
     --waikato-dark: #353535;
     --waikato-light: #F2F2F2;
     --status-teaching: #5B5BD6;
+    --status-available: #087F5B;
+    --status-available-tint: #EAF6EF;
+    --status-meeting: #A63832;
+    --status-meeting-tint: #FFF0ED;
+    --status-away: #52667A;
+    --status-away-tint: #F0F3F6;
   }
   body {
     @apply m-0 bg-canvas font-sans text-[14px] leading-[1.6] text-ink;

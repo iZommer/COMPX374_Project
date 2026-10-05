@@ -13,6 +13,8 @@ export interface PublicSettings {
   pixelShiftEnabled: boolean;
   dimStartHour: number | null;
   dimEndHour: number | null;
+  dimLevel: number;
+  timeFormat24h: boolean;
 }
 
 export interface DisplayState {
@@ -36,4 +38,9 @@ export function getStaleness(
   if (now - Date.parse(lastSuccessAt) >= staleAfterHours * 3_600_000)
     return "stale";
   return online ? "fresh" : "outdated";
+}
+
+export function isDimmingHour(hour: number, start: number | null, end: number | null): boolean {
+  if (start === null || end === null) return false;
+  return start > end ? hour >= start || hour < end : hour >= start && hour < end;
 }

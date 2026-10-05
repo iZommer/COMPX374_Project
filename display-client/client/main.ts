@@ -3,6 +3,7 @@ import { layoutWeekEvents } from "../shared/calendar-layout.js";
 import { createVCard, hasContactDetails } from "../shared/vcard.js";
 import type { DiaryPayload } from "../shared/payload.js";
 import type { DisplayState, PublicSettings } from "../shared/state.js";
+import { isDimmingHour } from "../shared/state.js";
 import "./styles.css";
 
 const $ = <T extends HTMLElement>(selector: string) =>
@@ -163,7 +164,7 @@ function formatTime(value: string | Date, timezone: string): string {
   return new Intl.DateTimeFormat("en-NZ", {
     timeZone: timezone,
     hour: "2-digit",
-    hourCycle: "h23",
+    hourCycle: state?.settings.timeFormat24h === false ? "h12" : "h23",
     minute: "2-digit",
   }).format(new Date(value));
 }
@@ -200,10 +201,8 @@ function updateDimming(settings: PublicSettings): void {
       hourCycle: "h23",
     }).format(new Date()),
   );
-  const overnight = settings.dimStartHour > settings.dimEndHour;
-  const dim = overnight
-    ? hour >= settings.dimStartHour || hour < settings.dimEndHour
-    : hour >= settings.dimStartHour && hour < settings.dimEndHour;
+  const dim = isDimmingHour(hour, settings.dimStartHour, settings.dimEndHour);
+  document.documentElement.style.setProperty("--dim-brightness", String(Math.max(0.1, Math.min(1, settings.dimLevel / 100))));
   document.documentElement.classList.toggle("dimmed", dim);
 }
 
@@ -327,7 +326,7 @@ const days = 5;
     const label = document.createElement("div");
     label.className = "time-label";
     label.style.gridRow = `${hour - startHour + 2}`;
-    label.textContent = `${String(hour).padStart(2, "0")}:00`;
+    label.textContent = settings.timeFormat24h ? `${String(hour).padStart(2, "0")}:00` : `${hour % 12 || 12}:00 ${hour < 12 ? "AM" : "PM"}`;
     grid.append(label);
   }
   for (let day = 0; day < days; day += 1) {
@@ -344,7 +343,7 @@ const days = 5;
     if (clippedEnd <= clippedStart) continue;
     const event = document.createElement("article");
     event.className = "calendar-event";
-    if (segment.event.status === "TEACHING") event.classList.add("event-teaching");
+    if (segment.event.status) event.classList.add(`event-status-${segment.event.status.toLowerCase()}`);
     event.style.setProperty("--top", `${((clippedStart - startMinute) / visibleMinutes) * 100}%`);
     event.style.setProperty("--height", `${Math.max(3, ((clippedEnd - clippedStart) / visibleMinutes) * 100)}%`);
     event.style.setProperty("--column", String(segment.column));
@@ -559,7 +558,8 @@ function updateClock(): void {
   $("#header-time").textContent = new Intl.DateTimeFormat("en-NZ", {
     timeZone: state.settings.timezone,
     weekday: "short",
-    hour: "numeric",
+    hour: "2-digit",
+    hourCycle: state.settings.timeFormat24h ? "h23" : "h12",
     minute: "2-digit",
   }).format(new Date());
   updateCalendarNowLine(state.settings);
