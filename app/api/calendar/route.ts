@@ -49,3 +49,11 @@ export const PUT = route(async (req) => {
   if (!result.count) throw new HttpError(404, "Calendar event not found.");
   return json({ ok: true });
 });
+export const DELETE = route(async (req) => {
+  const a = await academicFor(req);
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) throw new HttpError(400, "Event ID is required.");
+  const result = await db.calendarEvent.deleteMany({ where: { id, academicId: a.id } });
+  if (!result.count) throw new HttpError(404, "Calendar event not found.");
+  return json({ ok: true });
+});

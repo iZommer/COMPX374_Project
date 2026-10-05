@@ -10,7 +10,9 @@ export function weekRange(date?: string) {
 }
 export const localToISO = (value: string) =>
   DateTime.fromISO(value, { zone: ZONE }).toUTC().toISO()!;
+export const oneHourLaterLocal = (value: string) =>
+  DateTime.fromISO(value, { zone: ZONE }).plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm");
 export const localInput = (value: string) =>
   DateTime.fromISO(value).setZone(ZONE).toFormat("yyyy-MM-dd'T'HH:mm");
 export const formatTime = (value: string) =>
-  DateTime.fromISO(value).setZone(ZONE).toFormat("h:mm a");
+  DateTime.fromISO(value).setZone(ZONE).toFormat("HH:mm");

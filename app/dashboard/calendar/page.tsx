@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { DateTime } from "luxon";
 import { api, errorText } from "@/lib/client-api";
-import { formatTime, localToISO, ZONE } from "@/lib/time";
+import { formatTime, localToISO, oneHourLaterLocal, ZONE } from "@/lib/time";
 import {
   Notice,
   PageHeading,
@@ -20,7 +20,7 @@ type Event = {
 const eventStatuses = [
   ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "#087f5b", "#eaf6ef"],
   ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "#c9534b", "#fff0ed"],
-  ["TEACHING", "Teaching", "In class or facilitating", "♧", "#a66b1d", "#fff6e6"],
+  ["TEACHING", "Teaching", "In class or facilitating", "♧", "var(--status-teaching)", "#eeeeff"],
   ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "#65778a", "#f0f3f6"],
 ] as const;
 const localDateTime = (value: string) =>
@@ -38,6 +38,7 @@ export default function CalendarPage() {
   const [failed, setFailed] = useState(false);
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const endEdited = useRef(false);
   async function importFile(file: File | undefined) {
     if (!file) return;
     setMessage("");
@@ -100,6 +101,19 @@ export default function CalendarPage() {
       setBusy(false);
     }
   }
+  async function deleteEvent() {
+    if (!editing || !window.confirm(`Delete “${editing.title}”?`)) return;
+    setBusy(true);
+    try {
+      await api(`calendar?id=${encodeURIComponent(editing.id)}`, { method: "DELETE" });
+      setEditing(null);
+      setMessage("Event deleted.");
+      resource.retry();
+    } catch (e) {
+      setFailed(true);
+      setMessage(errorText(e));
+    } finally { setBusy(false); }
+  }
   return (
     <>
       <PageHeading
@@ -157,6 +171,7 @@ export default function CalendarPage() {
             className="primary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
             disabled={busy}
             onClick={() => {
+              endEdited.current = false;
               setAdding(!adding);
               setEditing(null);
               setEventStatus("IN_A_MEETING");
@@ -180,6 +195,16 @@ export default function CalendarPage() {
           key={editing?.id ?? "new-event"}
           className="bg-white border border-line rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] mb-[22px] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5 [&_fieldset]:grid [&_fieldset]:gap-[18px] [&_fieldset]:mt-5 [&_button]:justify-self-start"
           onSubmit={saveEvent}
+          onChange={(event) => {
+            const target = event.nativeEvent.target as HTMLInputElement;
+            const form = event.currentTarget;
+            if (target.name === "end") endEdited.current = true;
+            if (target.name === "start" && !endEdited.current && target.value) {
+              const end = form.elements.namedItem("end");
+              if (end instanceof HTMLInputElement)
+                end.value = oneHourLaterLocal(target.value);
+            }
+          }}
         >
           <h2>{editing ? "Edit event" : "Add an event"}</h2>
           <fieldset disabled={busy} className="grid gap-5">
@@ -199,8 +224,9 @@ export default function CalendarPage() {
                 <input
                   required
                   type="datetime-local"
+                  lang="en-GB"
                   name="start"
-                  defaultValue={editing ? localDateTime(editing.startTime) : ""}
+                  defaultValue={editing ? localDateTime(editing.startTime) : DateTime.now().setZone(ZONE).startOf("minute").toFormat("yyyy-MM-dd'T'HH:mm")}
                 />
               </label>
               <label>
@@ -208,8 +234,9 @@ export default function CalendarPage() {
                 <input
                   required
                   type="datetime-local"
+                  lang="en-GB"
                   name="end"
-                  defaultValue={editing ? localDateTime(editing.endTime) : ""}
+                  defaultValue={editing ? localDateTime(editing.endTime) : DateTime.now().setZone(ZONE).startOf("minute").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")}
                 />
               </label>
             </div>
@@ -247,6 +274,7 @@ export default function CalendarPage() {
             >
               {busy ? "Saving…" : editing ? "Save changes" : "Save event"}
             </button>
+            {editing && <button type="button" disabled={busy} className="secondary" onClick={deleteEvent}>Delete event</button>}
           </fieldset>
         </form>
       )}
@@ -287,6 +315,7 @@ export default function CalendarPage() {
                         <article
                           className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_h3]:ml-0 [&_>_small]:text-[8px] [&_>_small]:text-[#7f928f] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
                           key={e.id}
+                          style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "#eeeeff" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "#c9534b", backgroundColor: "#fff0ed" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "#65778a", backgroundColor: "#f0f3f6" } : { borderLeftColor: "#087f5b", backgroundColor: "#eaf6ef" }}
                         >
                           <span>
                             {DateTime.fromISO(e.startTime).setZone(ZONE) < day
@@ -309,6 +338,7 @@ export default function CalendarPage() {
                             disabled={busy}
                             className="mt-3 flex min-h-[34px] w-full items-center justify-center rounded-md border border-[#d5e4dd] bg-white px-3 text-[11px] font-bold text-brand hover:bg-[#f2f8f5]"
                             onClick={() => {
+                              endEdited.current = true;
                               setAdding(false);
                               setEditing(e);
                               setEventStatus(e.status ?? "IN_A_MEETING");
@@ -359,3 +389,4 @@ export default function CalendarPage() {
     </>
   );
 }
+
