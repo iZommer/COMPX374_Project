@@ -210,7 +210,14 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
                   Force status
                   <select
                     value={overrideStatus}
-                    onChange={(e) => { setOverrideStatus(e.target.value); change(); }}
+                    onChange={(e) => {
+                      setOverrideStatus(e.target.value);
+                      if (!e.target.value) {
+                        setOverrideUntil("");
+                        setOverrideMessage("");
+                      }
+                      change();
+                    }}
                   >
                     <option value="">No override</option>
                     {statuses.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}

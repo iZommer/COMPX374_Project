@@ -14,8 +14,8 @@ export const availabilityInput = z
     overrideMessage: z.string().trim().max(200).nullable().default(null),
   })
   .strict()
-  .refine((value) => Boolean(value.overrideStatus) === Boolean(value.overrideUntil), {
-    message: "A force status and its expiry time must be set together.",
+  .refine((value) => !value.overrideStatus || Boolean(value.overrideUntil), {
+    message: "Choose an expiry time for the force status.",
     path: ["overrideUntil"],
   });
 export const contactInput = z

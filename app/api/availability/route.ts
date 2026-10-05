@@ -11,6 +11,10 @@ export const GET = route(async (req) => {
 export const PUT = route(async (req) => {
   const a = await academicFor(req);
   const data = availabilityInput.parse(await body(req));
+  if (!data.overrideStatus) {
+    data.overrideUntil = null;
+    data.overrideMessage = null;
+  }
   return json(
     await db.availabilityStatus.update({ where: { academicId: a.id }, data }),
   );
