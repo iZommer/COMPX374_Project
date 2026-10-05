@@ -5,6 +5,7 @@ import { updateProfile } from "firebase/auth";
 import { api, errorText } from "@/lib/client-api";
 import { clientAuth } from "@/lib/firebase";
 import { localInput, localToISO } from "@/lib/time";
+import { DateTime24Field } from "@/components/DateTime24Field";
 import {
   Notice,
   PageHeading,
@@ -261,15 +262,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
               <span className="block text-[11px] font-normal text-muted mt-1 mr-0 mb-[11px] ml-0">
                 Your expected return, in New Zealand time.
               </span>
-              <input
-                type="datetime-local"
-                lang="en-GB"
-                value={returnTime}
-                onChange={(e) => {
-                  setReturnTime(e.target.value);
-                  change();
-                }}
-              />
+              <DateTime24Field value={returnTime} onChange={(value) => { setReturnTime(value); change(); }} />
             </label>
             <label className="hidden mt-6">
               Add a message{" "}
@@ -311,14 +304,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 </label>
                 <label className="!mt-0">
                   Keep override until
-                  <input
-                    type="datetime-local"
-                    lang="en-GB"
-                    required={Boolean(overrideStatus)}
-                    value={overrideUntil}
-                    disabled={!overrideStatus}
-                    onChange={(e) => { setOverrideUntil(e.target.value); change(); }}
-                  />
+                  <DateTime24Field required={Boolean(overrideStatus)} value={overrideUntil} disabled={!overrideStatus} onChange={(value) => { setOverrideUntil(value); change(); }} />
                 </label>
               </div>
               <label className="mt-4">

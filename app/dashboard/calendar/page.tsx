@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { DateTime } from "luxon";
 import { api, errorText } from "@/lib/client-api";
 import { formatTime, localToISO, oneHourLaterLocal, ZONE } from "@/lib/time";
+import { DateTime24Field } from "@/components/DateTime24Field";
 import {
   Notice,
   PageHeading,
@@ -39,6 +40,8 @@ export default function CalendarPage() {
   const timeText = (value: string) => DateTime.fromISO(value).setZone(ZONE).toFormat(show24Hour ? "HH:mm" : "h:mm a");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
+  const [startValue, setStartValue] = useState("");
+  const [endValue, setEndValue] = useState("");
   const [eventStatus, setEventStatus] = useState<Event["status"]>("IN_A_MEETING");
   const [repeat, setRepeat] = useState("none");
   const [repeatDays, setRepeatDays] = useState<string[]>([]);
@@ -210,6 +213,9 @@ export default function CalendarPage() {
             disabled={busy}
             onClick={() => {
               endEdited.current = false;
+              const start = DateTime.now().setZone(ZONE).startOf("minute").toFormat("yyyy-MM-dd'T'HH:mm");
+              setStartValue(start);
+              setEndValue(oneHourLaterLocal(start));
               setAdding(!adding);
               setEditing(null);
               setEventStatus("IN_A_MEETING");
@@ -233,16 +239,6 @@ export default function CalendarPage() {
           key={editing?.id ?? "new-event"}
           className="bg-white border border-line rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] mb-[22px] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5 [&_fieldset]:grid [&_fieldset]:gap-[18px] [&_fieldset]:mt-5 [&_button]:justify-self-start"
           onSubmit={saveEvent}
-          onChange={(event) => {
-            const target = event.nativeEvent.target as HTMLInputElement;
-            const form = event.currentTarget;
-            if (target.name === "end") endEdited.current = true;
-            if (target.name === "start" && !endEdited.current && target.value) {
-              const end = form.elements.namedItem("end");
-              if (end instanceof HTMLInputElement)
-                end.value = oneHourLaterLocal(target.value);
-            }
-          }}
         >
           <h2>{editing ? "Edit event" : "Add an event"}</h2>
           <fieldset disabled={busy} className="grid gap-5">
@@ -257,26 +253,8 @@ export default function CalendarPage() {
               />
             </label>
             <div className="grid grid-cols-2 gap-5 mobile:grid-cols-1">
-              <label>
-                Starts
-                <input
-                  required
-                  type="datetime-local"
-                  lang="en-GB"
-                  name="start"
-                  defaultValue={editing ? localDateTime(editing.startTime) : DateTime.now().setZone(ZONE).startOf("minute").toFormat("yyyy-MM-dd'T'HH:mm")}
-                />
-              </label>
-              <label>
-                Ends
-                <input
-                  required
-                  type="datetime-local"
-                  lang="en-GB"
-                  name="end"
-                  defaultValue={editing ? localDateTime(editing.endTime) : DateTime.now().setZone(ZONE).startOf("minute").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")}
-                />
-              </label>
+              <label>Starts<DateTime24Field name="start" value={startValue || (editing ? localDateTime(editing.startTime) : "")} required onChange={(value) => { setStartValue(value); if (!endEdited.current && DateTime.fromISO(value, { zone: ZONE }).isValid) setEndValue(oneHourLaterLocal(value)); }} /></label>
+              <label>Ends<DateTime24Field name="end" value={endValue || (editing ? localDateTime(editing.endTime) : "")} required onChange={(value) => { endEdited.current = true; setEndValue(value); }} /></label>
             </div>
             <section className="grid gap-3 rounded-lg border border-line p-4">
               <label>Repeats
@@ -376,7 +354,7 @@ export default function CalendarPage() {
                               : timeText(e.endTime)}
                           </span>
                           <h3>{e.title}</h3>
-                          <small>
+                          <small className="text-[13px] font-semibold">
                             {e.source === "ICS_IMPORT"
                               ? "Imported"
                               : "Manual event"} · {eventStatuses.find(([value]) => value === e.status)?.[1] ?? "In a meeting"}
@@ -389,6 +367,8 @@ export default function CalendarPage() {
                               endEdited.current = true;
                               setAdding(false);
                               setEditing(e);
+                              setStartValue(localDateTime(e.startTime));
+                              setEndValue(localDateTime(e.endTime));
                               setEventStatus(e.status ?? "IN_A_MEETING");
                               const rule = e.recurrenceRule ?? "";
                               const freq = rule.match(/FREQ=(DAILY|WEEKLY|MONTHLY)/)?.[1] ?? "WEEKLY";
