@@ -1,0 +1,1 @@
+ALTER TABLE "AvailabilityStatus" ALTER COLUMN "status" SET DEFAULT 'AVAILABLE';

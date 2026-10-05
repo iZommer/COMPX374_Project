@@ -31,7 +31,7 @@ model Academic {
 model AvailabilityStatus {
   academicId String @id
   academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
-  status Status @default(OUT_OF_OFFICE)
+  status Status @default(AVAILABLE)
   expectedReturnTime DateTime?
   customMessage String?
   overrideStatus Status?

@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { HttpError, json, route } from "@/lib/http";
-import { weekRange, ZONE } from "@/lib/time";
+import { ZONE } from "@/lib/time";
+import { DateTime } from "luxon";
+import { resolveStatus } from "@/lib/status-resolution";
 export const dynamic = "force-dynamic";
 export async function GET(
   request: Request,
@@ -10,7 +12,9 @@ export async function GET(
     const { apiKey } = await context.params;
     if (!/^[a-f0-9]{64}$/.test(apiKey))
       throw new HttpError(404, "Display key not found.");
-    const week = weekRange();
+    const localToday = DateTime.now().setZone(ZONE);
+    const monday = localToday.startOf("week").plus({ weeks: localToday.weekday > 5 ? 1 : 0 });
+    const week = { start: monday.toJSDate(), end: monday.plus({ days: 5 }).toJSDate() };
     const association = await db.displayAssociation.findUnique({
       where: { apiKey },
       select: {
@@ -58,25 +62,8 @@ export async function GET(
         new Date(event.startTime).getTime() <= nowMs &&
         new Date(event.endTime).getTime() > nowMs,
     );
-    const forceActive =
-      a.availability?.overrideStatus &&
-      a.availability.overrideUntil &&
-      new Date(a.availability.overrideUntil).getTime() > nowMs;
-    const availability = forceActive
-      ? {
-          status: a.availability!.overrideStatus!,
-          expectedReturnTime: new Date(a.availability!.overrideUntil!).toISOString(),
-          customMessage: a.availability!.overrideMessage,
-          updatedAt: now,
-        }
-      : currentEvent
-      ? {
-          status: currentEvent.status,
-          expectedReturnTime: new Date(currentEvent.endTime).toISOString(),
-          customMessage: currentEvent.title,
-          updatedAt: now,
-        }
-      : a.availability;
+    const resolved = resolveStatus({ now, overrideStatus: a.availability?.overrideStatus, overrideUntil: a.availability?.overrideUntil, calendar: currentEvent ? { ...currentEvent, endTime: new Date(currentEvent.endTime) } : null, savedStatus: a.availability?.status });
+    const availability = { status: resolved.status, expectedReturnTime: resolved.expectedReturnTime?.toISOString() ?? null, customMessage: resolved.source === "override" ? a.availability?.overrideMessage : resolved.customMessage, updatedAt: now };
     return json({
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { DateTime } from "luxon";
 import { updateProfile } from "firebase/auth";
 import { api, errorText } from "@/lib/client-api";
 import { clientAuth } from "@/lib/firebase";
@@ -30,7 +31,7 @@ const statuses = [
     label: "Teaching",
     hint: "In class or facilitating",
     icon: "♧",
-    color: "[--status:#a66b1d] [--tint:#fbebd3] [--pale:#fdf8ee]",
+    color: "[--status:var(--status-teaching)] [--tint:#eeeeff] [--pale:#f6f6ff]",
   },
   {
     id: "OUT_OF_OFFICE",
@@ -53,7 +54,7 @@ type Availability = {
     expectedReturnTime: string | null;
     customMessage: string | null;
   };
-  effectiveSource: "override" | "calendar" | "saved";
+  effectiveSource: "override" | "calendar" | "default";
   activeEventTitle: string | null;
 };
 function DisplayNameForm() {
@@ -212,7 +213,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
           <fieldset disabled={busy}>
             <legend className="sr-only">Choose your availability</legend>
             <div className="grid grid-cols-4 gap-[11px] mobile:grid-cols-2">
-              {statuses.map((s) => (
+                {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => (
                 <button
                   type="button"
                   key={s.id}
@@ -310,6 +311,8 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                     value={overrideStatus}
                     onChange={(e) => {
                       setOverrideStatus(e.target.value);
+                      if (e.target.value && !overrideUntil)
+                        setOverrideUntil(DateTime.now().setZone("Pacific/Auckland").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm"));
                       if (!e.target.value) {
                         setOverrideUntil("");
                         setOverrideMessage("");
@@ -318,7 +321,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                     }}
                   >
                     <option value="">No override</option>
-                    {statuses.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
                 </label>
                 <label className="!mt-0">
@@ -456,3 +459,4 @@ export default function AvailabilityPage() {
     </>
   );
 }
+

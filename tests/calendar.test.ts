@@ -1,13 +1,23 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseCalendar } from "../lib/ics";
-import { weekRange, localToISO } from "../lib/time";
+import { weekRange, localToISO, oneHourLaterLocal } from "../lib/time";
 import { eventInput, availabilityInput, contactInput } from "../lib/validation";
+import { resolveStatus } from "../lib/status-resolution";
 const now = new Date("2026-09-24T00:00:00Z");
 const calendar = (events: string) =>
   `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Nic//Test//EN\r\n${events}\r\nEND:VCALENDAR`;
 const event = (extra = "") =>
   `BEGIN:VEVENT\r\nUID:lecture-1\r\nSUMMARY:Lecture\r\nDTSTART;TZID=Pacific/Auckland:20260921T090000\r\nDTEND;TZID=Pacific/Auckland:20260921T100000\r\n${extra}\r\nEND:VEVENT`;
+test("new event end time defaults to one local hour after its start", () => {
+  assert.equal(oneHourLaterLocal("2026-07-02T09:30"), "2026-07-02T10:30");
+});
+test("active override wins over a calendar event and expires back to calendar", () => {
+  const now = new Date("2026-10-05T00:00:00Z");
+  const calendar = { status: "TEACHING" as const, title: "Lecture", endTime: new Date("2026-10-05T02:00:00Z") };
+  assert.equal(resolveStatus({ now, overrideStatus: "OUT_OF_OFFICE", overrideUntil: new Date("2026-10-05T01:00:00Z"), calendar }).status, "OUT_OF_OFFICE");
+  assert.equal(resolveStatus({ now: new Date("2026-10-05T01:00:00Z"), overrideStatus: "OUT_OF_OFFICE", overrideUntil: new Date("2026-10-05T01:00:00Z"), calendar }).status, "TEACHING");
+});
 test("recurrence keeps Auckland wall time across DST and honors EXDATE", () => {
   const rows = parseCalendar(
     calendar(
