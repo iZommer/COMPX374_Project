@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { clientAuth } from "@/lib/firebase";
 export function AuthForm({ register = false }: { register?: boolean }) {
@@ -18,9 +19,14 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     const form = new FormData(event.currentTarget);
     try {
       const auth = clientAuth();
-      await (
+      const credential = await (
         register ? createUserWithEmailAndPassword : signInWithEmailAndPassword
       )(auth, String(form.get("email")), String(form.get("password")));
+      if (register) {
+        const name = String(form.get("name") || "").trim();
+        if (!name) throw new Error("Enter your name to create your account.");
+        await updateProfile(credential.user, { displayName: name });
+      }
       router.replace("/dashboard/availability");
     } catch (e) {
       const code = (e as { code?: string }).code;
@@ -76,6 +82,19 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             : "Sign in to manage your office information."}
         </p>
         <form onSubmit={submit}>
+          {register && (
+            <label>
+              Your name
+              <input
+                required
+                name="name"
+                type="text"
+                maxLength={120}
+                autoComplete="name"
+                placeholder="e.g. Aroha Ngata"
+              />
+            </label>
+          )}
           <label>
             Email address
             <input

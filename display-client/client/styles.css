@@ -59,12 +59,12 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .view { height: 100%; padding: clamp(1rem, 3vw, 3rem); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; animation: view-in .16s ease-out; }
 #calendar-view { display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; overflow: hidden; touch-action: pan-x pan-y; }
 @keyframes view-in { from { opacity: .5; transform: translateY(.25rem); } }
-#status-view { display: grid; grid-template-rows: minmax(0, 1fr); padding-bottom: 0; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: clamp(.6rem, 1.5vw, 1.5rem); overflow: hidden; }
+#status-view { display: grid; grid-template-rows: minmax(0, 1fr); padding-bottom: clamp(.65rem, 1.2vw, 1.1rem); grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: clamp(.6rem, 1.5vw, 1.5rem); overflow: hidden; }
 .status-card { min-height: 0; min-width: 0; height: 100%; border-radius: clamp(1rem, 3vw, 2.5rem); display: grid; align-content: safe center; justify-items: center; padding: clamp(1rem, 2vw, 2rem); overflow-y: auto; overflow-wrap: anywhere; text-align: center; border: clamp(.45rem, 1vw, .8rem) solid var(--status-color, #52667a); background: var(--status-color, #52667a); color: #fff; }
 .status-available { --status-color: #087f5b; }
-.status-meeting { --status-color: #ffae00; }
-.status-teaching { --status-color: #5f3dc4; }
-.status-away { --status-color: #b42318; }
+.status-meeting { --status-color: #c9534b; }
+.status-teaching { --status-color: #a66b1d; }
+.status-away { --status-color: #65778a; }
 .status-unknown { --status-color: #52667a; }
 .status-label { margin: .2rem 0; font-size: clamp(3rem, 8vw, 9rem); font-weight: 900; line-height: 1.05; letter-spacing: -.04em; }
 .today-calendar { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: clamp(.75rem, 1.5vw, 1.5rem); border: 2px solid var(--line); border-radius: 1rem; background: var(--surface); }
@@ -110,7 +110,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .qr-panel canvas { display: block; width: min(32vw, 320px); height: auto !important; image-rendering: pixelated; }
 .qr-panel p { margin: .7rem 0 0; font-weight: 800; }
 .empty-state { align-self: center; justify-self: center; color: var(--muted); font-size: clamp(1.5rem, 4vw, 3rem); text-align: center; }
-.tab-bar { position: relative; flex-shrink: 0; z-index: 8; height: var(--nav-height); display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--line); background: var(--surface); }
+.tab-bar { position: relative; flex-shrink: 0; z-index: 8; height: var(--nav-height); margin-top: clamp(.5rem, 1vw, 1rem); display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--line); background: var(--surface); }
 .tab { height: 100%; min-height: 48px; padding: 0 .25rem; display: flex; align-items: center; justify-content: center; gap: .5rem; border: 0; border-top: .3rem solid transparent; background: transparent; color: var(--muted); font-weight: 800; line-height: 1; }
 .tab span { font-size: 1.4em; }
 .tab.active { color: var(--accent); border-top-color: var(--accent); background: #e7f6f4; }

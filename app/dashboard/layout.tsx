@@ -100,10 +100,10 @@ export default function DashboardLayout({
         </div>
         <div className="border-t border-t-[#ffffff16] flex gap-[11px] items-center py-[21px] px-0 min-w-0 [&_>_div:last-child]:min-w-0 [&_strong]:text-[10px] [&_strong]:block [&_strong]:overflow-hidden [&_strong]:text-ellipsis [&_strong]:whitespace-nowrap [&_button]:text-[10px] [&_button]:text-[#9eb2c5] [&_button]:mt-[3px] mobile:mt-3 mobile:py-2 mobile:px-0 mobile:justify-end mobile:[&_.avatar]:hidden mobile:[&_strong]:max-w-[130px]">
           <div className="avatar bg-[#2b475b] border border-[#ffffff20] w-[35px] h-[35px] grid place-items-center rounded-full shrink-0 text-[#d5e8e5]">
-            {user.email?.[0]?.toUpperCase()}
+            {(user.displayName?.trim() || user.email?.[0] || "?")[0]?.toUpperCase()}
           </div>
           <div>
-            <strong title={user.email || ""}>{user.email}</strong>
+            <strong title={user.email || ""}>{user.displayName?.trim() || "Your workspace"}</strong>
             <button
               onClick={async () => {
                 try {

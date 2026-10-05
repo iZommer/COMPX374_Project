@@ -57,7 +57,14 @@ export async function academicFor(request: Request) {
   const existing = await db.academic.findUnique({
     where: { firebaseUid: token.uid },
   });
-  if (existing) return existing;
+  if (existing) {
+    if (token.name && token.name !== existing.name)
+      return db.academic.update({
+        where: { id: existing.id },
+        data: { name: token.name },
+      });
+    return existing;
+  }
   // Provision all owned records together. A unique UID prevents duplicate accounts.
   try {
     return await db.academic.create({

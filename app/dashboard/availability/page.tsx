@@ -14,28 +14,28 @@ const statuses = [
     label: "Available",
     hint: "Happy to be interrupted",
     icon: "✓",
-    color: "[--status:#229161] [--tint:#dff1e5] [--pale:#f0f8f3]",
+    color: "[--status:#087f5b] [--tint:#dff1e5] [--pale:#f0f8f3]",
   },
   {
     id: "IN_A_MEETING",
     label: "In a meeting",
     hint: "Please come back later",
     icon: "−",
-    color: "[--status:#db6c62] [--tint:#fbe2dd] [--pale:#fff5f3]",
+    color: "[--status:#c9534b] [--tint:#fbe2dd] [--pale:#fff5f3]",
   },
   {
     id: "TEACHING",
     label: "Teaching",
     hint: "In class or facilitating",
     icon: "♧",
-    color: "[--status:#b78037] [--tint:#fbebd3] [--pale:#fdf8ee]",
+    color: "[--status:#a66b1d] [--tint:#fbebd3] [--pale:#fdf8ee]",
   },
   {
     id: "OUT_OF_OFFICE",
     label: "Out of office",
     hint: "Away from my desk",
     icon: "◷",
-    color: "[--status:#7c8b9c] [--tint:#e7edf1] [--pale:#f4f6f8]",
+    color: "[--status:#65778a] [--tint:#e7edf1] [--pale:#f4f6f8]",
   },
 ];
 type Availability = {

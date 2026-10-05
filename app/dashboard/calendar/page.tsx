@@ -18,7 +18,7 @@ type Event = {
   source: string;
 };
 const eventStatuses = [
-  ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "#17835d", "#eaf6ef"],
+  ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "#087f5b", "#eaf6ef"],
   ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "#c9534b", "#fff0ed"],
   ["TEACHING", "Teaching", "In class or facilitating", "♧", "#a66b1d", "#fff6e6"],
   ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "#65778a", "#f0f3f6"],
