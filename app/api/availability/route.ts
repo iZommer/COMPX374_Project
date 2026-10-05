@@ -3,22 +3,21 @@ import { db } from "@/lib/db";
 import { body, json, route } from "@/lib/http";
 import { availabilityInput } from "@/lib/validation";
 import { resolveStatus } from "@/lib/status-resolution";
+import { expandSeries } from "@/lib/recurrence";
 export const GET = route(async (req) => {
   const a = await academicFor(req);
   const now = new Date();
-  const [availability, currentEvent] = await Promise.all([
+  const [availability, calendarEvents] = await Promise.all([
     db.availabilityStatus.findUnique({ where: { academicId: a.id } }),
-    db.calendarEvent.findFirst({
-      where: {
-        academicId: a.id,
-        startTime: { lte: now },
-        endTime: { gt: now },
-      },
-      orderBy: { startTime: "desc" },
-      select: { title: true, status: true, endTime: true },
+    db.calendarEvent.findMany({
+      where: { academicId: a.id, OR: [
+        { recurrenceRule: { not: null }, startTime: { lte: now } },
+        { recurrenceRule: null, startTime: { lte: now }, endTime: { gt: now } },
+      ] }, include: { recurrenceExceptions: true },
     }),
   ]);
-  const resolved = resolveStatus({ now, overrideStatus: availability?.overrideStatus, overrideUntil: availability?.overrideUntil, calendar: currentEvent ? { ...currentEvent, endTime: currentEvent.endTime } : null, savedStatus: availability?.status });
+  const currentEvent = expandSeries(calendarEvents, now, new Date(+now + 1)).find((event) => event.startTime <= now && event.endTime > now);
+  const resolved = resolveStatus({ now, overrideStatus: availability?.overrideStatus, overrideUntil: availability?.overrideUntil, calendar: currentEvent ? { title: currentEvent.title, status: currentEvent.status, endTime: currentEvent.endTime } : null });
   const effectiveAvailability = { status: resolved.status, expectedReturnTime: resolved.expectedReturnTime, customMessage: availability?.overrideMessage ?? resolved.customMessage };
   return json({
     ...availability,

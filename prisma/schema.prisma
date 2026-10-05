@@ -27,6 +27,7 @@ model Academic {
   events CalendarEvent[]
   contact ContactInfo?
   display DisplayAssociation?
+  displaySettings DisplayClientSettings?
 }
 model AvailabilityStatus {
   academicId String @id
@@ -49,8 +50,22 @@ model CalendarEvent {
   status Status @default(IN_A_MEETING)
   source EventSource @default(MANUAL)
   importKey String?
+  recurrenceRule String?
+  recurrenceExceptions CalendarEventException[]
   @@unique([academicId, importKey])
   @@index([academicId, startTime, endTime])
+}
+model CalendarEventException {
+  id String @id @default(cuid())
+  eventId String
+  event CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  occurrenceStart DateTime
+  cancelled Boolean @default(false)
+  title String?
+  startTime DateTime?
+  endTime DateTime?
+  status Status?
+  @@unique([eventId, occurrenceStart])
 }
 model ContactInfo {
   academicId String @id
@@ -65,4 +80,18 @@ model DisplayAssociation {
   academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
   apiKey String @unique
   pairedAt DateTime?
+}
+model DisplayClientSettings {
+  academicId String @id
+  academic Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
+  textScale String @default("normal")
+  highContrast Boolean @default(false)
+  pixelShiftEnabled Boolean @default(true)
+  idleReturnSeconds Int @default(60)
+  staleAfterHours Int @default(24)
+  dimStartHour Int @default(19)
+  dimEndHour Int @default(7)
+  dimLevel Int @default(55)
+  timeFormat24h Boolean @default(true)
+  updatedAt DateTime @updatedAt
 }

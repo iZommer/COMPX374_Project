@@ -4,6 +4,7 @@ import { parseCalendar } from "../lib/ics";
 import { weekRange, localToISO, oneHourLaterLocal } from "../lib/time";
 import { eventInput, availabilityInput, contactInput } from "../lib/validation";
 import { resolveStatus } from "../lib/status-resolution";
+import { expandSeries, remainingCount } from "../lib/recurrence";
 const now = new Date("2026-09-24T00:00:00Z");
 const calendar = (events: string) =>
   `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Nic//Test//EN\r\n${events}\r\nEND:VCALENDAR`;
@@ -17,6 +18,24 @@ test("active override wins over a calendar event and expires back to calendar", 
   const calendar = { status: "TEACHING" as const, title: "Lecture", endTime: new Date("2026-10-05T02:00:00Z") };
   assert.equal(resolveStatus({ now, overrideStatus: "OUT_OF_OFFICE", overrideUntil: new Date("2026-10-05T01:00:00Z"), calendar }).status, "OUT_OF_OFFICE");
   assert.equal(resolveStatus({ now: new Date("2026-10-05T01:00:00Z"), overrideStatus: "OUT_OF_OFFICE", overrideUntil: new Date("2026-10-05T01:00:00Z"), calendar }).status, "TEACHING");
+});
+test("manual recurrence expands in range and skips a cancelled instance", () => {
+  const start = new Date("2026-02-01T20:00:00Z");
+  const excluded = new Date("2026-02-02T20:00:00Z");
+  const event = { id: "series", title: "Study", startTime: start, endTime: new Date("2026-02-01T21:00:00Z"), status: "AVAILABLE" as const, source: "MANUAL", recurrenceRule: "FREQ=DAILY;COUNT=3", recurrenceExceptions: [{ occurrenceStart: excluded, cancelled: true, title: null, startTime: null, endTime: null, status: null }] };
+  const rows = expandSeries([event], new Date("2026-02-01T00:00:00Z"), new Date("2026-02-05T00:00:00Z"));
+  assert.deepEqual(rows.map((row) => row.startTime.toISOString()), [start.toISOString(), "2026-02-03T20:00:00.000Z"]);
+  assert.ok(rows.every((row) => row.parentEventId === "series"));
+});
+test("moved recurrence exceptions appear at their replacement time and preserve COUNT", () => {
+  const first = new Date("2026-02-01T20:00:00Z");
+  const nominal = new Date("2026-02-02T20:00:00Z");
+  const moved = new Date("2026-02-02T22:00:00Z");
+  const event = { id: "series", title: "Study", startTime: first, endTime: new Date("2026-02-01T21:00:00Z"), status: "AVAILABLE" as const, source: "MANUAL", recurrenceRule: "FREQ=DAILY;COUNT=3", recurrenceExceptions: [{ occurrenceStart: nominal, cancelled: false, title: "Moved study", startTime: moved, endTime: new Date(+moved + 3600000), status: null }] };
+  const rows = expandSeries([event], new Date("2026-02-01T00:00:00Z"), new Date("2026-02-05T00:00:00Z"));
+  assert.equal(rows.length, 3);
+  assert.ok(rows.some((row) => row.title === "Moved study" && +row.startTime === +moved));
+  assert.equal(remainingCount("FREQ=DAILY;COUNT=8", first, new Date("2026-02-04T20:00:00Z")), 5);
 });
 test("recurrence keeps Auckland wall time across DST and honors EXDATE", () => {
   const rows = parseCalendar(
@@ -122,4 +141,10 @@ test("request validation rejects reversed events and ownership injection", () =>
     }).success,
     false,
   );
+});
+test("manual event validation accepts supported RRULEs and rejects malformed rules", () => {
+  const base = { title: "Repeat", startTime: "2026-10-05T20:00:00.000Z", endTime: "2026-10-05T21:00:00.000Z", status: "TEACHING" };
+  for (const recurrenceRule of ["FREQ=DAILY;COUNT=5", "FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20261101T105959Z", "FREQ=MONTHLY;INTERVAL=3"])
+    assert.equal(eventInput.parse({ ...base, recurrenceRule }).recurrenceRule, recurrenceRule);
+  assert.throws(() => eventInput.parse({ ...base, recurrenceRule: "FREQ=HOURLY;COUNT=99999999" }));
 });

@@ -16,12 +16,16 @@ type Event = {
   endTime: string;
   status: "AVAILABLE" | "IN_A_MEETING" | "TEACHING" | "OUT_OF_OFFICE";
   source: string;
+  recurrenceRule: string | null;
+  parentEventId: string | null;
+  occurrenceStart: string | null;
 };
+const weekDays = [["MO", "Mon"], ["TU", "Tue"], ["WE", "Wed"], ["TH", "Thu"], ["FR", "Fri"], ["SA", "Sat"], ["SU", "Sun"]] as const;
 const eventStatuses = [
-  ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "#087f5b", "#eaf6ef"],
-  ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "#c9534b", "#fff0ed"],
+  ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "var(--status-available)", "var(--status-available-tint)"],
+  ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "var(--status-meeting)", "var(--status-meeting-tint)"],
   ["TEACHING", "Teaching", "In class or facilitating", "♧", "var(--status-teaching)", "#eeeeff"],
-  ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "#65778a", "#f0f3f6"],
+  ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "var(--status-away)", "var(--status-away-tint)"],
 ] as const;
 const localDateTime = (value: string) =>
   DateTime.fromISO(value).setZone(ZONE).toFormat("yyyy-MM-dd'T'HH:mm");
@@ -30,9 +34,19 @@ export default function CalendarPage() {
     DateTime.now().setZone(ZONE).startOf("week"),
   );
   const resource = useResource<Event[]>(`calendar?week=${week.toISODate()}`);
+  const timeSettings = useResource<{ timeFormat24h: boolean }>("display-settings");
+  const show24Hour = timeSettings.data?.timeFormat24h ?? true;
+  const timeText = (value: string) => DateTime.fromISO(value).setZone(ZONE).toFormat(show24Hour ? "HH:mm" : "h:mm a");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
   const [eventStatus, setEventStatus] = useState<Event["status"]>("IN_A_MEETING");
+  const [repeat, setRepeat] = useState("none");
+  const [repeatDays, setRepeatDays] = useState<string[]>([]);
+  const [repeatEnd, setRepeatEnd] = useState("never");
+  const [repeatDate, setRepeatDate] = useState("");
+  const [repeatCount, setRepeatCount] = useState("10");
+  const [customFrequency, setCustomFrequency] = useState("WEEKLY");
+  const [customInterval, setCustomInterval] = useState("1");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -78,14 +92,30 @@ export default function CalendarPage() {
       const start = String(form.get("start"));
       const end = String(form.get("end"));
       if (end <= start) throw new Error("End time must be after start time.");
+      const frequency = repeat === "fortnightly" ? "WEEKLY" : repeat === "custom" ? customFrequency : repeat.toUpperCase();
+      const ruleParts = repeat === "none" ? [] : [`FREQ=${frequency}`];
+      if (repeat === "fortnightly") ruleParts.push("INTERVAL=2");
+      if (repeat === "custom" && Number(customInterval) > 1) ruleParts.push(`INTERVAL=${customInterval}`);
+      if ((repeat === "weekly" || (repeat === "custom" && customFrequency === "WEEKLY")) && repeatDays.length) ruleParts.push(`BYDAY=${repeatDays.join(",")}`);
+      if (repeatEnd === "date" && repeatDate) ruleParts.push(`UNTIL=${DateTime.fromISO(`${repeatDate}T23:59:59`, { zone: ZONE }).toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'")}`);
+      if (repeatEnd === "count") ruleParts.push(`COUNT=${repeatCount}`);
+      let scope = "all";
+      if (editing?.parentEventId && editing.occurrenceStart) {
+        const selected = window.prompt("This event only / This and following / All events", "This event only");
+        if (!selected) return;
+        scope = selected === "This event only" ? "this" : selected === "This and following" ? "following" : "all";
+      }
       await api("calendar", {
         method: editing ? "PUT" : "POST",
         body: JSON.stringify({
           ...(editing ? { id: editing.id } : {}),
+          ...(editing?.occurrenceStart ? { occurrenceStart: editing.occurrenceStart } : {}),
+          ...(editing?.parentEventId ? { scope } : {}),
           title: form.get("title"),
           startTime: localToISO(start),
           endTime: localToISO(end),
           status: form.get("status"),
+          recurrenceRule: ruleParts.length ? ruleParts.join(";") : null,
         }),
       });
       setMessage(editing ? "Event updated." : "Event added to your diary.");
@@ -103,9 +133,17 @@ export default function CalendarPage() {
   }
   async function deleteEvent() {
     if (!editing || !window.confirm(`Delete “${editing.title}”?`)) return;
+    let scope = "all";
+    if (editing.parentEventId && editing.occurrenceStart) {
+      const selected = window.prompt("This event only / This and following / All events", "This event only");
+      if (!selected) return;
+      scope = selected === "This event only" ? "this" : selected === "This and following" ? "following" : "all";
+    }
     setBusy(true);
     try {
-      await api(`calendar?id=${encodeURIComponent(editing.id)}`, { method: "DELETE" });
+      const params = new URLSearchParams({ id: editing.id, scope });
+      if (editing.occurrenceStart) params.set("occurrenceStart", editing.occurrenceStart);
+      await api(`calendar?${params}`, { method: "DELETE" });
       setEditing(null);
       setMessage("Event deleted.");
       resource.retry();
@@ -224,7 +262,7 @@ export default function CalendarPage() {
                 <input
                   required
                   type="datetime-local"
-                  lang="en-GB"
+                  lang={show24Hour ? "en-GB" : "en-US"}
                   name="start"
                   defaultValue={editing ? localDateTime(editing.startTime) : DateTime.now().setZone(ZONE).startOf("minute").toFormat("yyyy-MM-dd'T'HH:mm")}
                 />
@@ -234,12 +272,22 @@ export default function CalendarPage() {
                 <input
                   required
                   type="datetime-local"
-                  lang="en-GB"
+                  lang={show24Hour ? "en-GB" : "en-US"}
                   name="end"
                   defaultValue={editing ? localDateTime(editing.endTime) : DateTime.now().setZone(ZONE).startOf("minute").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")}
                 />
               </label>
             </div>
+            <section className="grid gap-3 rounded-lg border border-line p-4">
+              <label>Repeats
+                <select value={repeat} onChange={(e) => setRepeat(e.target.value)}>
+                  <option value="none">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="monthly">Monthly</option><option value="custom">Custom</option>
+                </select>
+              </label>
+              {(repeat === "weekly" || (repeat === "custom" && customFrequency === "WEEKLY")) && <fieldset className="flex flex-wrap gap-3"><legend>Days of the week</legend>{weekDays.map(([code, label]) => <label key={code} className="flex items-center gap-1"><input type="checkbox" checked={repeatDays.includes(code)} onChange={() => setRepeatDays((days) => days.includes(code) ? days.filter((day) => day !== code) : [...days, code])} />{label}</label>)}</fieldset>}
+              {repeat === "custom" && <div className="grid grid-cols-2 gap-3"><label>Frequency<select value={customFrequency} onChange={(e) => setCustomFrequency(e.target.value)}><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option></select></label><label>Every<input type="number" min="1" max="999" value={customInterval} onChange={(e) => setCustomInterval(e.target.value)} /></label></div>}
+              {repeat !== "none" && <div className="grid grid-cols-2 gap-3 mobile:grid-cols-1"><label>Ends<select value={repeatEnd} onChange={(e) => setRepeatEnd(e.target.value)}><option value="never">Never</option><option value="date">On date</option><option value="count">After N occurrences</option></select></label>{repeatEnd === "date" && <label>Last date<input required type="date" value={repeatDate} onChange={(e) => setRepeatDate(e.target.value)} /></label>}{repeatEnd === "count" && <label>Occurrences<input required type="number" min="1" max="99999" value={repeatCount} onChange={(e) => setRepeatCount(e.target.value)} /></label>}</div>}
+            </section>
             <label>
               <span className="mb-1 block text-[13px] font-bold text-ink">What should your display show?</span>
               <span className="mb-3 block text-[11px] font-normal text-muted">
@@ -315,17 +363,17 @@ export default function CalendarPage() {
                         <article
                           className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_h3]:ml-0 [&_>_small]:text-[8px] [&_>_small]:text-[#7f928f] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
                           key={e.id}
-                          style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "#eeeeff" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "#c9534b", backgroundColor: "#fff0ed" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "#65778a", backgroundColor: "#f0f3f6" } : { borderLeftColor: "#087f5b", backgroundColor: "#eaf6ef" }}
+                          style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "#eeeeff" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "var(--status-meeting)", backgroundColor: "var(--status-meeting-tint)" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "var(--status-away)", backgroundColor: "var(--status-away-tint)" } : { borderLeftColor: "var(--status-available)", backgroundColor: "var(--status-available-tint)" }}
                         >
                           <span>
                             {DateTime.fromISO(e.startTime).setZone(ZONE) < day
                               ? "Continues"
-                              : formatTime(e.startTime)}{" "}
+                              : timeText(e.startTime)}{" "}
                             –{" "}
                             {DateTime.fromISO(e.endTime).setZone(ZONE) >
                             day.plus({ days: 1 })
                               ? "next day"
-                              : formatTime(e.endTime)}
+                              : timeText(e.endTime)}
                           </span>
                           <h3>{e.title}</h3>
                           <small>
@@ -342,6 +390,14 @@ export default function CalendarPage() {
                               setAdding(false);
                               setEditing(e);
                               setEventStatus(e.status ?? "IN_A_MEETING");
+                              const rule = e.recurrenceRule ?? "";
+                              const freq = rule.match(/FREQ=(DAILY|WEEKLY|MONTHLY)/)?.[1] ?? "WEEKLY";
+                              const interval = Number(rule.match(/INTERVAL=(\d+)/)?.[1] ?? 1);
+                              setRepeat(rule ? freq === "WEEKLY" && interval === 2 ? "fortnightly" : interval > 1 ? "custom" : freq.toLowerCase() : "none");
+                              setCustomFrequency(freq); setCustomInterval(String(interval));
+                              setRepeatDays(rule.match(/BYDAY=([^;]+)/)?.[1].split(",") ?? []);
+                              setRepeatEnd(rule.includes("COUNT=") ? "count" : rule.includes("UNTIL=") ? "date" : "never");
+                              setRepeatCount(rule.match(/COUNT=(\d+)/)?.[1] ?? "10");
                               setMessage("");
                             }}
                           >

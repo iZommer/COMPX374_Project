@@ -34,9 +34,13 @@ export const eventInput = z
     startTime: z.string().datetime({ offset: true }),
     endTime: z.string().datetime({ offset: true }),
     status: z.enum(["AVAILABLE", "IN_A_MEETING", "TEACHING", "OUT_OF_OFFICE"]),
+    recurrenceRule: z.string().trim().max(500).nullable().optional(),
   })
   .strict()
   .refine((e) => new Date(e.endTime) > new Date(e.startTime), {
     message: "End time must be after start time.",
     path: ["endTime"],
+  })
+  .refine((e) => !e.recurrenceRule || /^(?=.*FREQ=(DAILY|WEEKLY|MONTHLY))(?:(?:FREQ=(?:DAILY|WEEKLY|MONTHLY)|INTERVAL=[1-9]\d{0,2}|BYDAY=(?:MO|TU|WE|TH|FR|SA|SU)(?:,(?:MO|TU|WE|TH|FR|SA|SU))*|COUNT=[1-9]\d{0,4}|UNTIL=\d{8}T\d{6}Z);?)+$/.test(e.recurrenceRule), {
+    message: "Choose a valid supported recurrence rule.", path: ["recurrenceRule"],
   });
