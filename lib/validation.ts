@@ -25,6 +25,9 @@ export const contactInput = z
     officeLocation: z.string().trim().max(120),
   })
   .strict();
+export const profileInput = z
+  .object({ name: z.string().trim().min(1).max(120) })
+  .strict();
 export const eventInput = z
   .object({
     title: z.string().trim().min(1).max(200),

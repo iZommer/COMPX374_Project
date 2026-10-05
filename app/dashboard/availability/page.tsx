@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
+import { updateProfile } from "firebase/auth";
 import { api, errorText } from "@/lib/client-api";
+import { clientAuth } from "@/lib/firebase";
 import { localInput, localToISO } from "@/lib/time";
 import {
   Notice,
@@ -54,6 +56,66 @@ type Availability = {
   effectiveSource: "override" | "calendar" | "saved";
   activeEventTitle: string | null;
 };
+function DisplayNameForm() {
+  const resource = useResource<{ name: string }>("profile");
+  const [name, setName] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [failed, setFailed] = useState(false);
+  const value = name ?? resource.data?.name ?? "";
+  async function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setFeedback("");
+    setFailed(false);
+    try {
+      const saved = await api<{ name: string }>("profile", {
+        method: "PUT",
+        body: JSON.stringify({ name: value }),
+      });
+      setName(saved.name);
+      const user = clientAuth().currentUser;
+      if (user) {
+        try {
+          await updateProfile(user, { displayName: saved.name });
+        } catch {
+          // The display reads the saved academic name from the API database.
+        }
+      }
+      setFeedback("Name updated. The display will refresh shortly.");
+    } catch (e) {
+      setFailed(true);
+      setFeedback(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (!resource.data) return <ResourceState {...resource} />;
+  return (
+    <form
+      onSubmit={save}
+      className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-line bg-white p-5 shadow-[0_3px_12px_#152e4304] mobile:p-4"
+    >
+      <label className="min-w-[230px] flex-1 text-[12px]">
+        Name shown on the display
+        <input
+          required
+          maxLength={120}
+          value={value}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name"
+        />
+      </label>
+      <button
+        disabled={busy || !value.trim()}
+        className="primary inline-flex min-h-[42px] items-center justify-center rounded-[7px] bg-brand px-[18px] py-2.5 text-[13px] font-semibold text-white hover:bg-[#065e4d]"
+      >
+        {busy ? "Saving…" : "Save name"}
+      </button>
+      <div className="basis-full"><Notice message={feedback} error={failed} /></div>
+    </form>
+  );
+}
 function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved: () => void }) {
   const [status, setStatus] = useState(initial.status);
   const [returnTime, setReturnTime] = useState(
@@ -385,6 +447,7 @@ export default function AvailabilityPage() {
         title="Manage availability"
         description="A quick update makes it easier for others to find you."
       />
+      <DisplayNameForm />
       {resource.data ? (
         <AvailabilityForm initial={resource.data} onSaved={resource.retry} />
       ) : (
