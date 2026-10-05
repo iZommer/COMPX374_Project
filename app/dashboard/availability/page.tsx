@@ -263,6 +263,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
               </span>
               <input
                 type="datetime-local"
+                lang="en-GB"
                 value={returnTime}
                 onChange={(e) => {
                   setReturnTime(e.target.value);
@@ -312,6 +313,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                   Keep override until
                   <input
                     type="datetime-local"
+                    lang="en-GB"
                     required={Boolean(overrideStatus)}
                     value={overrideUntil}
                     disabled={!overrideStatus}

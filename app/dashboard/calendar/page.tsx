@@ -262,7 +262,7 @@ export default function CalendarPage() {
                 <input
                   required
                   type="datetime-local"
-                  lang={show24Hour ? "en-GB" : "en-US"}
+                  lang="en-GB"
                   name="start"
                   defaultValue={editing ? localDateTime(editing.startTime) : DateTime.now().setZone(ZONE).startOf("minute").toFormat("yyyy-MM-dd'T'HH:mm")}
                 />
@@ -272,7 +272,7 @@ export default function CalendarPage() {
                 <input
                   required
                   type="datetime-local"
-                  lang={show24Hour ? "en-GB" : "en-US"}
+                  lang="en-GB"
                   name="end"
                   defaultValue={editing ? localDateTime(editing.endTime) : DateTime.now().setZone(ZONE).startOf("minute").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")}
                 />
