@@ -6,8 +6,18 @@ export const availabilityInput = z
       .default("IN_A_MEETING"),
     expectedReturnTime: z.string().datetime({ offset: true }).nullable(),
     customMessage: z.string().trim().max(200).nullable(),
+    overrideStatus: z
+      .enum(["AVAILABLE", "IN_A_MEETING", "TEACHING", "OUT_OF_OFFICE"])
+      .nullable()
+      .default(null),
+    overrideUntil: z.string().datetime({ offset: true }).nullable().default(null),
+    overrideMessage: z.string().trim().max(200).nullable().default(null),
   })
-  .strict();
+  .strict()
+  .refine((value) => Boolean(value.overrideStatus) === Boolean(value.overrideUntil), {
+    message: "A force status and its expiry time must be set together.",
+    path: ["overrideUntil"],
+  });
 export const contactInput = z
   .object({
     email: z.string().trim().email().max(254),

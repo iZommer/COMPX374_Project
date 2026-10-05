@@ -10,14 +10,16 @@
 
   button,
   input,
-  textarea {
+  textarea,
+  select {
     font: inherit;
   }
 
   button,
   a,
   input,
-  textarea {
+  textarea,
+  select {
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -57,6 +59,10 @@
 
   textarea {
     @apply min-h-[100px] resize-y;
+  }
+
+  select {
+    @apply mt-2 block min-h-[44px] w-full rounded-[7px] border border-[#cfd9e0] bg-white px-[13px] py-[10px] text-ink outline-none focus:border-brand focus:shadow-[0_0_0_3px_#08766015];
   }
 
   input[type="datetime-local"] {

@@ -42,6 +42,9 @@ type Availability = {
   status: string;
   expectedReturnTime: string | null;
   customMessage: string | null;
+  overrideStatus: string | null;
+  overrideUntil: string | null;
+  overrideMessage: string | null;
   updatedAt: string;
 };
 function AvailabilityForm({ initial }: { initial: Availability }) {
@@ -50,6 +53,11 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
     initial.expectedReturnTime ? localInput(initial.expectedReturnTime) : "",
   );
   const [message, setMessage] = useState(initial.customMessage || "");
+  const [overrideStatus, setOverrideStatus] = useState(initial.overrideStatus || "");
+  const [overrideUntil, setOverrideUntil] = useState(
+    initial.overrideUntil ? localInput(initial.overrideUntil) : "",
+  );
+  const [overrideMessage, setOverrideMessage] = useState(initial.overrideMessage || "");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [failed, setFailed] = useState(false);
@@ -71,6 +79,9 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
           status,
           expectedReturnTime: returnTime ? localToISO(returnTime) : null,
           customMessage: message || null,
+          overrideStatus: overrideStatus || null,
+          overrideUntil: overrideUntil ? localToISO(overrideUntil) : null,
+          overrideMessage: overrideMessage || null,
         }),
       });
       setFeedback(
@@ -182,6 +193,58 @@ function AvailabilityForm({ initial }: { initial: Availability }) {
                 placeholder="e.g. Please email me if it’s urgent."
               />
             </label>
+            <div className="mt-7 rounded-xl border border-[#d7e7e1] bg-[#f4faf7] p-5 mobile:p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-[14px] font-bold text-ink">Force a temporary status</h3>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                    This overrides a calendar event on the display until the time you choose. The active event takes over again after it expires.
+                  </p>
+                </div>
+                {overrideStatus && (
+                  <span className="rounded-full bg-[#e1f2e9] px-3 py-1 text-[10px] font-bold text-[#18734d]">Override on</span>
+                )}
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 mobile:grid-cols-1">
+                <label className="!mt-0">
+                  Force status
+                  <select
+                    value={overrideStatus}
+                    onChange={(e) => { setOverrideStatus(e.target.value); change(); }}
+                  >
+                    <option value="">No override</option>
+                    {statuses.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                </label>
+                <label className="!mt-0">
+                  Keep override until
+                  <input
+                    type="datetime-local"
+                    required={Boolean(overrideStatus)}
+                    value={overrideUntil}
+                    disabled={!overrideStatus}
+                    onChange={(e) => { setOverrideUntil(e.target.value); change(); }}
+                  />
+                </label>
+              </div>
+              <label className="mt-4">
+                Override message <span className="text-[10px] text-muted">Optional</span>
+                <input
+                  maxLength={200}
+                  value={overrideMessage}
+                  disabled={!overrideStatus}
+                  placeholder="e.g. Stepped out briefly"
+                  onChange={(e) => { setOverrideMessage(e.target.value); change(); }}
+                />
+              </label>
+              {overrideStatus && (
+                <button
+                  type="button"
+                  className="mt-2 text-[11px] font-semibold text-brand underline"
+                  onClick={() => { setOverrideStatus(""); setOverrideUntil(""); setOverrideMessage(""); change(); }}
+                >Clear force status</button>
+              )}
+            </div>
             <p className="text-right text-[10px] mt-[5px]">
               {message.length}/200
             </p>

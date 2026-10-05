@@ -18,10 +18,10 @@ type Event = {
   source: string;
 };
 const eventStatuses = [
-  ["AVAILABLE", "Available"],
-  ["IN_A_MEETING", "In a meeting"],
-  ["TEACHING", "Teaching"],
-  ["OUT_OF_OFFICE", "Out of office"],
+  ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "#17835d", "#eaf6ef"],
+  ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "#c9534b", "#fff0ed"],
+  ["TEACHING", "Teaching", "In class or facilitating", "♧", "#a66b1d", "#fff6e6"],
+  ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "#65778a", "#f0f3f6"],
 ] as const;
 const localDateTime = (value: string) =>
   DateTime.fromISO(value).setZone(ZONE).toFormat("yyyy-MM-dd'T'HH:mm");
@@ -32,6 +32,7 @@ export default function CalendarPage() {
   const resource = useResource<Event[]>(`calendar?week=${week.toISODate()}`);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
+  const [eventStatus, setEventStatus] = useState<Event["status"]>("IN_A_MEETING");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
@@ -89,6 +90,7 @@ export default function CalendarPage() {
       setMessage(editing ? "Event updated." : "Event added to your diary.");
       setAdding(false);
       setEditing(null);
+      setEventStatus("IN_A_MEETING");
       setWeek(DateTime.fromISO(start, { zone: ZONE }).startOf("week"));
       resource.retry();
     } catch (e) {
@@ -154,7 +156,11 @@ export default function CalendarPage() {
           <button
             className="primary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
             disabled={busy}
-            onClick={() => { setAdding(!adding); setEditing(null); }}
+            onClick={() => {
+              setAdding(!adding);
+              setEditing(null);
+              setEventStatus("IN_A_MEETING");
+            }}
           >
             {adding ? "Close form" : "+ Add event"}
           </button>
@@ -176,7 +182,7 @@ export default function CalendarPage() {
           onSubmit={saveEvent}
         >
           <h2>{editing ? "Edit event" : "Add an event"}</h2>
-          <fieldset disabled={busy}>
+          <fieldset disabled={busy} className="grid gap-5">
             <label>
               Event title
               <input
@@ -208,12 +214,29 @@ export default function CalendarPage() {
               </label>
             </div>
             <label>
-              Display status during this event
-              <select name="status" defaultValue={editing?.status ?? "IN_A_MEETING"}>
-                {eventStatuses.map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
+              <span className="mb-1 block text-[13px] font-bold text-ink">What should your display show?</span>
+              <span className="mb-3 block text-[11px] font-normal text-muted">
+                Choose the status visitors will see while this event is happening.
+              </span>
+              <input type="hidden" name="status" value={eventStatus} />
+              <span className="grid grid-cols-2 gap-3 mobile:grid-cols-1">
+                {eventStatuses.map(([value, label, hint, icon, color, tint]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={eventStatus === value}
+                    onClick={() => setEventStatus(value)}
+                    className={`flex min-h-[76px] items-center gap-3 rounded-xl border p-3 text-left transition-colors ${eventStatus === value ? "border-brand bg-[#f0f8f4] ring-2 ring-[#d3e9df]" : "border-[#e2e9ec] bg-white hover:bg-[#f8fbfa]"}`}
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[20px] font-bold" style={{ color, backgroundColor: tint }}>{icon}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[12px] font-bold text-ink">{label}</span>
+                      <span className="mt-1 block text-[10px] leading-snug text-muted">{hint}</span>
+                    </span>
+                    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border text-[11px] ${eventStatus === value ? "border-brand bg-brand text-white" : "border-[#d5dfe3] text-transparent"}`} aria-hidden="true">✓</span>
+                  </button>
                 ))}
-              </select>
+              </span>
             </label>
             <p className="muted text-muted text-[12px]">
               All times are in Pacific/Auckland.
@@ -284,10 +307,11 @@ export default function CalendarPage() {
                           <button
                             type="button"
                             disabled={busy}
-                            className="mt-2 text-[10px] font-semibold text-brand underline"
+                            className="mt-3 flex min-h-[34px] w-full items-center justify-center rounded-md border border-[#d5e4dd] bg-white px-3 text-[11px] font-bold text-brand hover:bg-[#f2f8f5]"
                             onClick={() => {
                               setAdding(false);
                               setEditing(e);
+                              setEventStatus(e.status ?? "IN_A_MEETING");
                               setMessage("");
                             }}
                           >

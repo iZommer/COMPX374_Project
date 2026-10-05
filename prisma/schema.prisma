@@ -34,6 +34,9 @@ model AvailabilityStatus {
   status Status @default(OUT_OF_OFFICE)
   expectedReturnTime DateTime?
   customMessage String?
+  overrideStatus Status?
+  overrideUntil DateTime?
+  overrideMessage String?
   updatedAt DateTime @updatedAt
 }
 model CalendarEvent {

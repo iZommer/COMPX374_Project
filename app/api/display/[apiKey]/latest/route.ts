@@ -22,6 +22,9 @@ export async function GET(
                 status: true,
                 expectedReturnTime: true,
                 customMessage: true,
+                overrideStatus: true,
+                overrideUntil: true,
+                overrideMessage: true,
                 updatedAt: true,
               },
             },
@@ -48,8 +51,6 @@ export async function GET(
     });
     if (!association) throw new HttpError(404, "Display key not found.");
     const a = association.academic;
-    // An event currently in progress takes precedence over the manually set
-    // status for the display. Once it ends, the saved manual status resumes.
     const now = new Date();
     const nowMs = now.getTime();
     const currentEvent = a.events.find(
@@ -57,7 +58,18 @@ export async function GET(
         new Date(event.startTime).getTime() <= nowMs &&
         new Date(event.endTime).getTime() > nowMs,
     );
-    const availability = currentEvent
+    const forceActive =
+      a.availability?.overrideStatus &&
+      a.availability.overrideUntil &&
+      new Date(a.availability.overrideUntil).getTime() > nowMs;
+    const availability = forceActive
+      ? {
+          status: a.availability!.overrideStatus!,
+          expectedReturnTime: new Date(a.availability!.overrideUntil!).toISOString(),
+          customMessage: a.availability!.overrideMessage,
+          updatedAt: now,
+        }
+      : currentEvent
       ? {
           status: currentEvent.status,
           expectedReturnTime: new Date(currentEvent.endTime).toISOString(),
