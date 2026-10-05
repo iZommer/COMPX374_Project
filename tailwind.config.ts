@@ -4,10 +4,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: "#10263b",
+        navy: "#171717",
         ink: "#17283a",
         muted: "#69798b",
-        brand: "#087660",
+        brand: "var(--waikato-red, #D40100)",
         line: "#e3e9ed",
         canvas: "#f5f7f9",
       },

@@ -44,7 +44,7 @@ export function loadRuntimeConfig(): RuntimeConfig {
       textScale: "normal",
       highContrast: false,
       pixelShiftEnabled: process.env.PIXEL_SHIFT_ENABLED !== "false",
-      dimStartHour: optionalHour("DIM_START_HOUR", 22),
+      dimStartHour: optionalHour("DIM_START_HOUR", 19),
       dimEndHour: optionalHour("DIM_END_HOUR", 7),
     },
   };

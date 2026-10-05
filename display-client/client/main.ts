@@ -162,7 +162,8 @@ function showScreen(name: keyof typeof screens): void {
 function formatTime(value: string | Date, timezone: string): string {
   return new Intl.DateTimeFormat("en-NZ", {
     timeZone: timezone,
-    hour: "numeric",
+    hour: "2-digit",
+    hourCycle: "h23",
     minute: "2-digit",
   }).format(new Date(value));
 }
@@ -298,7 +299,7 @@ function renderCalendar(payload: DiaryPayload, settings: PublicSettings): void {
   grid.hidden = payload.calendar.length === 0;
   if (!payload.week || payload.calendar.length === 0) return;
 
-  const days = 7;
+const days = 5;
   const segments = layoutWeekEvents(payload.calendar, payload.week.start, settings.timezone, days);
   const startHour = Math.max(0, Math.min(8, ...segments.map((item) => Math.floor(item.startMinute / 60))));
   const endHour = Math.min(24, Math.max(18, ...segments.map((item) => Math.ceil(item.endMinute / 60))));
@@ -343,6 +344,7 @@ function renderCalendar(payload: DiaryPayload, settings: PublicSettings): void {
     if (clippedEnd <= clippedStart) continue;
     const event = document.createElement("article");
     event.className = "calendar-event";
+    if (segment.event.status === "TEACHING") event.classList.add("event-teaching");
     event.style.setProperty("--top", `${((clippedStart - startMinute) / visibleMinutes) * 100}%`);
     event.style.setProperty("--height", `${Math.max(3, ((clippedEnd - clippedStart) / visibleMinutes) * 100)}%`);
     event.style.setProperty("--column", String(segment.column));

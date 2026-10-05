@@ -4,7 +4,8 @@
   --paper: #f6f9fc;
   --surface: #ffffff;
   --line: #cad6e2;
-  --accent: #006d77;
+  --accent: #D40100; /* University of Waikato primary web red */
+  --brand-red: #D40100;
   --warning: #fff3bf;
   --danger: #9b2226;
   --nav-height: 48px;
@@ -63,7 +64,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .status-card { min-height: 0; min-width: 0; height: 100%; border-radius: clamp(1rem, 3vw, 2.5rem); display: grid; align-content: safe center; justify-items: center; padding: clamp(1rem, 2vw, 2rem); overflow-y: auto; overflow-wrap: anywhere; text-align: center; border: clamp(.45rem, 1vw, .8rem) solid var(--status-color, #52667a); background: var(--status-color, #52667a); color: #fff; }
 .status-available { --status-color: #087f5b; }
 .status-meeting { --status-color: #c9534b; }
-.status-teaching { --status-color: #a66b1d; }
+.status-teaching { --status-color: #5b5bd6; }
 .status-away { --status-color: #65778a; }
 .status-unknown { --status-color: #52667a; }
 .status-label { margin: .2rem 0; font-size: clamp(3rem, 8vw, 9rem); font-weight: 900; line-height: 1.05; letter-spacing: -.04em; }
@@ -88,8 +89,8 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .calendar-zoom { display: flex; align-items: center; gap: .35rem; }
 .calendar-zoom button { min-width: 44px; min-height: 44px; padding: 0; border: 2px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); font-size: 1.5rem; font-weight: 800; line-height: 1; }
 .calendar-zoom button:disabled { opacity: .4; }
-.calendar-zoom output { min-width: 3.5rem; text-align: center; color: var(--muted); font-size: .8rem; font-weight: 800; }
-.calendar-grid { --calendar-hours: 10; --calendar-days: 7; --calendar-day-width: 120px; --calendar-hour-height: 32px; position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: clamp(3.2rem, 6vw, 5rem) repeat(var(--calendar-days), var(--calendar-day-width)); grid-template-rows: 3rem repeat(var(--calendar-hours), var(--calendar-hour-height)); border: 1px solid var(--line); background: var(--surface); overflow: auto; overscroll-behavior: contain; touch-action: none; cursor: grab; scrollbar-width: none; }
+.calendar-zoom output { min-width: 3.5rem; text-align: center; color: var(--muted); font-size: 1.5rem; font-weight: 800; line-height: 1; }
+.calendar-grid { --calendar-hours: 10; --calendar-days: 5; --calendar-day-width: 120px; --calendar-hour-height: 32px; position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: clamp(3.2rem, 6vw, 5rem) repeat(var(--calendar-days), minmax(var(--calendar-day-width), 1fr)); grid-template-rows: 3rem repeat(var(--calendar-hours), var(--calendar-hour-height)); border: 1px solid var(--line); background: var(--surface); overflow: auto; overscroll-behavior: contain; touch-action: none; cursor: grab; scrollbar-width: none; }
 .calendar-grid:active { cursor: grabbing; }
 .calendar-grid::-webkit-scrollbar { display: none; }
 .calendar-corner { position: sticky; z-index: 6; top: 0; left: 0; grid-column: 1; grid-row: 1; border: 1px solid var(--line); background: var(--surface); }
@@ -98,6 +99,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .time-label { position: sticky; z-index: 4; left: 0; grid-column: 1; transform: translateY(-.55em); padding-right: .35rem; color: var(--muted); background: var(--surface); font-size: .72rem; text-align: right; }
 .day-column { position: relative; grid-row: 2 / -1; border-left: 1px solid var(--line); background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(100% / var(--calendar-hours) - 1px), var(--line) calc(100% / var(--calendar-hours))); }
 .calendar-event { position: absolute; z-index: 2; top: var(--top); height: var(--height); left: calc(100% / var(--columns) * var(--column)); width: calc(100% / var(--columns) - .18rem); padding: .25rem .35rem; overflow: hidden; border-left: .35rem solid #005f73; border-radius: .25rem; background: #cdeef2; color: #073b4c; font-size: .72rem; }
+.calendar-event.event-teaching { border-left-color: #5b5bd6; background: #eeeeff; color: #20204f; }
 .calendar-event strong, .calendar-event span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .now-line { position: absolute; z-index: 4; left: 0; right: 0; height: 3px; background: #d00000; box-shadow: 0 0 0 1px white; }
 .now-line::before { content: ""; position: absolute; left: -.3rem; top: -.25rem; width: .55rem; height: .55rem; border-radius: 50%; background: #d00000; }
@@ -111,9 +113,10 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .qr-panel p { margin: .7rem 0 0; font-weight: 800; }
 .empty-state { align-self: center; justify-self: center; color: var(--muted); font-size: clamp(1.5rem, 4vw, 3rem); text-align: center; }
 .tab-bar { position: relative; flex-shrink: 0; z-index: 8; height: var(--nav-height); margin-top: clamp(.5rem, 1vw, 1rem); display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--line); background: var(--surface); }
-.tab { height: 100%; min-height: 48px; padding: 0 .25rem; display: flex; align-items: center; justify-content: center; gap: .5rem; border: 0; border-top: .3rem solid transparent; background: transparent; color: var(--muted); font-weight: 800; line-height: 1; }
+.tab { height: 100%; min-height: 48px; padding: 0 .25rem; display: flex; align-items: center; justify-content: center; gap: .5rem; border: 1px solid var(--line); border-top: .3rem solid transparent; background: var(--surface); color: var(--muted); font-weight: 800; line-height: 1; box-shadow: 0 2px 4px #102a431c; }
 .tab span { font-size: 1.4em; }
 .tab.active { color: var(--accent); border-top-color: var(--accent); background: #e7f6f4; }
+.tab:active { transform: translateY(1px); background: #f1e9e9; }
 .admin-hotspot { position: fixed; z-index: 10; top: 0; left: 0; width: 64px; height: 64px; border: 0; background: transparent; opacity: .01; }
 dialog { width: min(42rem, 92vw); border: 2px solid var(--line); border-radius: 1.25rem; padding: 0; color: var(--ink); background: var(--surface); }
 dialog::backdrop { background: #07131fcc; }
@@ -127,13 +130,13 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
 @media (orientation: portrait) {
   .contact-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 1rem; overflow: auto; }
   .qr-panel canvas { width: min(46vw, 300px); }
-  .calendar-grid { grid-template-columns: 3.2rem repeat(7, var(--calendar-day-width)); }
+  .calendar-grid { grid-template-columns: 3.2rem repeat(5, minmax(var(--calendar-day-width), 1fr)); }
 }
 @media (max-width: 850px) {
   .eyebrow { font-size: .68rem; }
   .display-header { min-height: 4.5rem; }
   .view { padding: .7rem; }
-  .calendar-grid { grid-template-columns: 3rem repeat(7, var(--calendar-day-width)); }
+  .calendar-grid { grid-template-columns: 3rem repeat(5, minmax(var(--calendar-day-width), 1fr)); }
 }
 @media (max-height: 600px) and (orientation: landscape) {
   :root { --header-height: 56px; }

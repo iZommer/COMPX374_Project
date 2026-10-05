@@ -4,6 +4,12 @@
 
 /* Shared document defaults; component styling lives in JSX utilities. */
 @layer base {
+  :root {
+    --waikato-red: #D40100;
+    --waikato-dark: #353535;
+    --waikato-light: #F2F2F2;
+    --status-teaching: #5B5BD6;
+  }
   body {
     @apply m-0 bg-canvas font-sans text-[14px] leading-[1.6] text-ink;
   }
