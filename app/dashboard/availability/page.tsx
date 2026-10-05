@@ -137,6 +137,19 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
   const effective = initial.effectiveAvailability;
   const effectivePresentation =
     statuses.find((s) => s.id === effective.status) ?? statuses[3];
+  const previewStatus = dirty ? selected : effectivePresentation;
+  const previewDetail = dirty
+    ? overrideStatus && overrideUntil
+      ? `Until ${overrideUntil.replace("T", " at ")}`
+      : previewStatus.hint
+    : initial.effectiveSource === "calendar"
+      ? `From ${initial.activeEventTitle || "current calendar event"}`
+      : initial.effectiveSource === "override" && initial.overrideUntil
+        ? `Override until ${localInput(initial.overrideUntil).replace("T", " at ")}`
+        : previewStatus.hint;
+  const previewMessage = dirty
+    ? overrideStatus ? overrideMessage : message
+    : effective.customMessage;
   const change = () => {
     setDirty(true);
     setFeedback("");
@@ -351,27 +364,23 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
           <h2>Outside your office</h2>
           <p>A preview of the information you share.</p>
           <div
-            className={`visitor-card border border-[var(--tint)] rounded-[8px] [background:linear-gradient(140deg,_var(--pale),_#fff)] mt-6 pt-[23px] pr-5 pb-0 pl-5 overflow-hidden ${selected.color}`}
+            className={`visitor-card border border-[var(--tint)] rounded-[8px] [background:linear-gradient(140deg,_var(--pale),_#fff)] mt-6 pt-[23px] pr-5 pb-0 pl-5 overflow-hidden ${previewStatus.color}`}
           >
             <div className="flex gap-3 items-start [&_strong]:block [&_strong]:text-[var(--status)] [&_strong]:text-[19px] [&_strong]:leading-[1.3] [&_div_>_span]:block [&_div_>_span]:text-[11px] [&_div_>_span]:text-[#72808e] [&_div_>_span]:mt-[7px]">
               <span
                 className="status-icon inline-flex items-center justify-center w-[39px] h-[39px] rounded-full text-[23px] text-[var(--status)] bg-[var(--tint)] shrink-0"
                 aria-hidden="true"
               >
-                {selected.icon}
+                {previewStatus.icon}
               </span>
               <div>
-                <strong>{selected.label}</strong>
-                <span>
-                  {overrideStatus && overrideUntil
-                    ? `Until ${overrideUntil.replace("T", " at ")}`
-                    : selected.hint}
-                </span>
+                <strong>{previewStatus.label}</strong>
+                <span>{previewDetail}</span>
               </div>
             </div>
-            {overrideMessage && (
+            {previewMessage && (
               <p className="text-[13px] mt-[22px] whitespace-pre-wrap [overflow-wrap:anywhere]">
-                {overrideMessage}
+                {previewMessage}
               </p>
             )}
             <div
