@@ -21,6 +21,7 @@ type Event = {
   parentEventId: string | null;
   occurrenceStart: string | null;
 };
+type EventScope = "this" | "following" | "all";
 const weekDays = [["MO", "Mon"], ["TU", "Tue"], ["WE", "Wed"], ["TH", "Thu"], ["FR", "Fri"], ["SA", "Sat"], ["SU", "Sun"]] as const;
 const eventStatuses = [
   ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "var(--status-available)", "var(--status-available-tint)"],
@@ -40,6 +41,7 @@ export default function CalendarPage() {
   const timeText = (value: string) => DateTime.fromISO(value).setZone(ZONE).toFormat(show24Hour ? "HH:mm" : "h:mm a");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
+  const [scopeAction, setScopeAction] = useState<{ kind: "save"; form: FormData } | { kind: "delete" } | null>(null);
   const [startValue, setStartValue] = useState("");
   const [endValue, setEndValue] = useState("");
   const [eventStatus, setEventStatus] = useState<Event["status"]>("IN_A_MEETING");
@@ -56,6 +58,16 @@ export default function CalendarPage() {
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const endEdited = useRef(false);
+  function currentRecurrenceRule() {
+    const frequency = repeat === "fortnightly" ? "WEEKLY" : repeat === "custom" ? customFrequency : repeat.toUpperCase();
+    const parts = repeat === "none" ? [] : [`FREQ=${frequency}`];
+    if (repeat === "fortnightly") parts.push("INTERVAL=2");
+    if (repeat === "custom" && Number(customInterval) > 1) parts.push(`INTERVAL=${customInterval}`);
+    if ((repeat === "weekly" || (repeat === "custom" && customFrequency === "WEEKLY")) && repeatDays.length) parts.push(`BYDAY=${repeatDays.join(",")}`);
+    if (repeatEnd === "date" && repeatDate) parts.push(`UNTIL=${DateTime.fromISO(`${repeatDate}T23:59:59`, { zone: ZONE }).toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'")}`);
+    if (repeatEnd === "count") parts.push(`COUNT=${repeatCount}`);
+    return parts.length ? parts.join(";") : null;
+  }
   async function importFile(file: File | undefined) {
     if (!file) return;
     setMessage("");
@@ -88,6 +100,14 @@ export default function CalendarPage() {
   async function saveEvent(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    form.set("recurrenceRule", currentRecurrenceRule() ?? "");
+    if (editing?.parentEventId && editing.occurrenceStart) {
+      setScopeAction({ kind: "save", form });
+      return;
+    }
+    await persistEvent(form, "all");
+  }
+  async function persistEvent(form: FormData, scope: EventScope) {
     setBusy(true);
     setMessage("");
     setFailed(false);
@@ -95,19 +115,6 @@ export default function CalendarPage() {
       const start = String(form.get("start"));
       const end = String(form.get("end"));
       if (end <= start) throw new Error("End time must be after start time.");
-      const frequency = repeat === "fortnightly" ? "WEEKLY" : repeat === "custom" ? customFrequency : repeat.toUpperCase();
-      const ruleParts = repeat === "none" ? [] : [`FREQ=${frequency}`];
-      if (repeat === "fortnightly") ruleParts.push("INTERVAL=2");
-      if (repeat === "custom" && Number(customInterval) > 1) ruleParts.push(`INTERVAL=${customInterval}`);
-      if ((repeat === "weekly" || (repeat === "custom" && customFrequency === "WEEKLY")) && repeatDays.length) ruleParts.push(`BYDAY=${repeatDays.join(",")}`);
-      if (repeatEnd === "date" && repeatDate) ruleParts.push(`UNTIL=${DateTime.fromISO(`${repeatDate}T23:59:59`, { zone: ZONE }).toUTC().toFormat("yyyyMMdd'T'HHmmss'Z'")}`);
-      if (repeatEnd === "count") ruleParts.push(`COUNT=${repeatCount}`);
-      let scope = "all";
-      if (editing?.parentEventId && editing.occurrenceStart) {
-        const selected = window.prompt("This event only / This and following / All events", "This event only");
-        if (!selected) return;
-        scope = selected === "This event only" ? "this" : selected === "This and following" ? "following" : "all";
-      }
       await api("calendar", {
         method: editing ? "PUT" : "POST",
         body: JSON.stringify({
@@ -118,7 +125,7 @@ export default function CalendarPage() {
           startTime: localToISO(start),
           endTime: localToISO(end),
           status: form.get("status"),
-          recurrenceRule: ruleParts.length ? ruleParts.join(";") : null,
+          recurrenceRule: String(form.get("recurrenceRule") || "") || null,
         }),
       });
       setMessage(editing ? "Event updated." : "Event added to your diary.");
@@ -134,14 +141,8 @@ export default function CalendarPage() {
       setBusy(false);
     }
   }
-  async function deleteEvent() {
-    if (!editing || !window.confirm(`Delete “${editing.title}”?`)) return;
-    let scope = "all";
-    if (editing.parentEventId && editing.occurrenceStart) {
-      const selected = window.prompt("This event only / This and following / All events", "This event only");
-      if (!selected) return;
-      scope = selected === "This event only" ? "this" : selected === "This and following" ? "following" : "all";
-    }
+  async function deleteEvent(scope: EventScope) {
+    if (!editing) return;
     setBusy(true);
     try {
       const params = new URLSearchParams({ id: editing.id, scope });
@@ -155,6 +156,20 @@ export default function CalendarPage() {
       setMessage(errorText(e));
     } finally { setBusy(false); }
   }
+  function requestDeleteEvent() {
+    if (!editing || !window.confirm(`Delete “${editing.title}”?`)) return;
+    if (editing.parentEventId && editing.occurrenceStart) setScopeAction({ kind: "delete" });
+    else void deleteEvent("all");
+  }
+  async function chooseScope(scope: EventScope) {
+    const action = scopeAction;
+    setScopeAction(null);
+    if (!action) return;
+    if (action.kind === "save") await persistEvent(action.form, scope);
+    else await deleteEvent(scope);
+  }
+  const recurrenceChanged = scopeAction?.kind === "save" &&
+    String(scopeAction.form.get("recurrenceRule") || "") !== (editing?.recurrenceRule ?? "");
   return (
     <>
       <PageHeading
@@ -226,6 +241,24 @@ export default function CalendarPage() {
         </div>
       </div>
       <Notice message={message} error={failed} />
+      {scopeAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#14232f]/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setScopeAction(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="event-scope-title" className="w-full max-w-md rounded-xl border border-line bg-white p-6 shadow-2xl">
+            <h2 id="event-scope-title" className="text-[18px]">{scopeAction.kind === "save" ? "Apply changes to" : "Delete"}</h2>
+            <p className="mt-2 text-[13px]">Choose which part of this repeating event to {scopeAction.kind === "save" ? "update" : "remove"}.</p>
+            {recurrenceChanged && <p className="mt-3 rounded-md border border-[#e9d39d] bg-[#fff9e8] p-3 text-[12px] text-[#705817]">You changed the repeat days. That changes the series schedule, so “This event only” cannot apply that change. Choose “This and following” or “All events”.</p>}
+            <div className="mt-5 grid gap-2">
+              {([["this", "This event only", "Change just this date."], ["following", "This and following", "Change this date and later repeats."], ["all", "All events", "Change the entire repeating series."]] as const).map(([scope, title, detail]) => (
+                <button key={scope} type="button" disabled={scope === "this" && recurrenceChanged} className="flex min-h-14 flex-col items-start rounded-lg border border-[#d8e1e5] bg-white px-4 py-2 text-left hover:border-brand hover:bg-[#f3faf7] disabled:cursor-not-allowed disabled:opacity-45" onClick={() => void chooseScope(scope)}>
+                  <span className="text-[13px] font-bold text-ink">{title}</span>
+                  <span className="text-[11px] font-normal text-muted">{detail}</span>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="secondary mt-4 min-h-10 px-4" onClick={() => setScopeAction(null)}>Cancel</button>
+          </section>
+        </div>
+      )}
       {processing && (
         <p
           role="status"
@@ -256,13 +289,23 @@ export default function CalendarPage() {
               <label>Starts<DateTime24Field name="start" value={startValue || (editing ? localDateTime(editing.startTime) : "")} required onChange={(value) => { setStartValue(value); if (!endEdited.current && DateTime.fromISO(value, { zone: ZONE }).isValid) setEndValue(oneHourLaterLocal(value)); }} /></label>
               <label>Ends<DateTime24Field name="end" value={endValue || (editing ? localDateTime(editing.endTime) : "")} required onChange={(value) => { endEdited.current = true; setEndValue(value); }} /></label>
             </div>
-            <section className="grid gap-3 rounded-lg border border-line p-4">
-              <label>Repeats
+            <section className="grid gap-4 rounded-lg border border-line bg-[#fbfcfc] p-4">
+              <label className="text-[13px]">Repeats
                 <select value={repeat} onChange={(e) => setRepeat(e.target.value)}>
                   <option value="none">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="monthly">Monthly</option><option value="custom">Custom</option>
                 </select>
               </label>
-              {(repeat === "weekly" || (repeat === "custom" && customFrequency === "WEEKLY")) && <fieldset className="flex flex-wrap gap-3"><legend>Days of the week</legend>{weekDays.map(([code, label]) => <label key={code} className="flex items-center gap-1"><input type="checkbox" checked={repeatDays.includes(code)} onChange={() => setRepeatDays((days) => days.includes(code) ? days.filter((day) => day !== code) : [...days, code])} />{label}</label>)}</fieldset>}
+              {(repeat === "weekly" || (repeat === "custom" && customFrequency === "WEEKLY")) && (
+                <fieldset className="grid grid-cols-7 gap-2 border-0 p-0 mobile:grid-cols-4">
+                  <legend className="mb-2 text-[12px] font-semibold text-[#526274]">Days of the week</legend>
+                  {weekDays.map(([code, label]) => {
+                    const selected = repeatDays.includes(code);
+                    return <label key={code} className={`inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border px-2 text-[12px] font-semibold transition-colors ${selected ? "border-brand bg-[#eaf6ef] text-brand" : "border-[#d8e1e5] bg-white text-[#526274] hover:bg-[#f3f7f6]"}`}>
+                      <input className="!m-0 !h-4 !w-4 !p-0" type="checkbox" checked={selected} onChange={() => setRepeatDays((days) => selected ? days.filter((day) => day !== code) : [...days, code])} />{label}
+                    </label>;
+                  })}
+                </fieldset>
+              )}
               {repeat === "custom" && <div className="grid grid-cols-2 gap-3"><label>Frequency<select value={customFrequency} onChange={(e) => setCustomFrequency(e.target.value)}><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option></select></label><label>Every<input type="number" min="1" max="999" value={customInterval} onChange={(e) => setCustomInterval(e.target.value)} /></label></div>}
               {repeat !== "none" && <div className="grid grid-cols-2 gap-3 mobile:grid-cols-1"><label>Ends<select value={repeatEnd} onChange={(e) => setRepeatEnd(e.target.value)}><option value="never">Never</option><option value="date">On date</option><option value="count">After N occurrences</option></select></label>{repeatEnd === "date" && <label>Last date<input required type="date" value={repeatDate} onChange={(e) => setRepeatDate(e.target.value)} /></label>}{repeatEnd === "count" && <label>Occurrences<input required type="number" min="1" max="99999" value={repeatCount} onChange={(e) => setRepeatCount(e.target.value)} /></label>}</div>}
             </section>
@@ -300,7 +343,7 @@ export default function CalendarPage() {
             >
               {busy ? "Saving…" : editing ? "Save changes" : "Save event"}
             </button>
-            {editing && <button type="button" disabled={busy} className="secondary" onClick={deleteEvent}>Delete event</button>}
+            {editing && <button type="button" disabled={busy} className="secondary" onClick={requestDeleteEvent}>Delete event</button>}
           </fieldset>
         </form>
       )}
@@ -339,7 +382,7 @@ export default function CalendarPage() {
                     {events.length ? (
                       events.map((e) => (
                         <article
-                          className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_h3]:ml-0 [&_>_small]:text-[8px] [&_>_small]:text-[#7f928f] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
+                          className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_h3]:ml-0 [&_>_small]:text-[12px] [&_>_small]:font-semibold [&_>_small]:text-[#536b76] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
                           key={e.id}
                           style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "#eeeeff" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "var(--status-meeting)", backgroundColor: "var(--status-meeting-tint)" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "var(--status-away)", backgroundColor: "var(--status-away-tint)" } : { borderLeftColor: "var(--status-available)", backgroundColor: "var(--status-available-tint)" }}
                         >

@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { body, HttpError, json, route } from "@/lib/http";
 import { eventInput } from "@/lib/validation";
 import { weekRange } from "@/lib/time";
+import { DateTime } from "luxon";
+import { ZONE } from "@/lib/time";
 import { expandSeries, remainingCount } from "@/lib/recurrence";
 function occurrenceDate(value: string | undefined) {
   if (!value || !Number.isFinite(Date.parse(value))) throw new HttpError(400, "A valid occurrence start is required.");
@@ -74,9 +76,22 @@ export const PUT = route(async (req) => {
     if (followingExceptions.length) await db.calendarEventException.createMany({ data: followingExceptions.map(({ id: _id, eventId: _eventId, ...exception }) => ({ ...exception, eventId: nextSeries.id })) });
     return json({ ok: true });
   }
+  let updateData = data;
+  if (scope === "all" && occurrenceAt) {
+    const parent = await db.calendarEvent.findFirst({ where: { id: parentId, academicId: a.id } });
+    if (parent?.recurrenceRule) {
+      // The form is populated from one expanded occurrence. Keep the series
+      // anchored to its original first date while applying the edited wall time.
+      const originalStart = DateTime.fromJSDate(parent.startTime).setZone(ZONE);
+      const editedStart = DateTime.fromJSDate(new Date(data.startTime)).setZone(ZONE);
+      const duration = new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+      const anchoredStart = originalStart.set({ hour: editedStart.hour, minute: editedStart.minute, second: editedStart.second, millisecond: editedStart.millisecond });
+      updateData = { ...data, startTime: anchoredStart.toISO()!, endTime: anchoredStart.plus({ milliseconds: duration }).toISO()! };
+    }
+  }
   const result = await db.calendarEvent.updateMany({
     where: { id: parentId, academicId: a.id },
-    data,
+    data: updateData,
   });
   if (!result.count) throw new HttpError(404, "Calendar event not found.");
   return json({ ok: true });

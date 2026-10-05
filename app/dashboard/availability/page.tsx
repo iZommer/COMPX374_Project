@@ -320,7 +320,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
               {overrideStatus && (
                 <button
                   type="button"
-                  className="mt-2 text-[11px] font-semibold text-brand underline"
+                  className="mt-3 inline-flex min-h-10 items-center justify-center rounded-md border border-[#c94a3d] bg-white px-4 text-[12px] font-bold text-[#a83227] shadow-sm transition-colors hover:bg-[#fff1ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a83227] disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={clearOverrideNow}
                   disabled={busy}
                 >Clear override</button>
