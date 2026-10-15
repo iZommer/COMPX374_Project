@@ -44,6 +44,8 @@ export default function CalendarPage() {
   const [scopeAction, setScopeAction] = useState<{ kind: "save"; form: FormData } | { kind: "delete" } | null>(null);
   const [startValue, setStartValue] = useState("");
   const [endValue, setEndValue] = useState("");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState<Record<string, { id: string; occurrenceStart: string | null }>>({});
   const [eventStatus, setEventStatus] = useState<Event["status"]>("IN_A_MEETING");
   const [repeat, setRepeat] = useState("none");
   const [repeatDays, setRepeatDays] = useState<string[]>([]);
@@ -58,6 +60,25 @@ export default function CalendarPage() {
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const endEdited = useRef(false);
+  async function deleteSelectedEvents() {
+    const events = Object.values(selectedEvents);
+    if (!events.length || !window.confirm(`Delete ${events.length} selected event${events.length === 1 ? "" : "s"}?`)) return;
+    setBusy(true);
+    setMessage("");
+    setFailed(false);
+    try {
+      await api("calendar/bulk-delete", { method: "POST", body: JSON.stringify({ events }) });
+      setSelectedEvents({});
+      setSelectionMode(false);
+      setMessage(`Deleted ${events.length} selected event${events.length === 1 ? "" : "s"}.`);
+      resource.retry();
+    } catch (e) {
+      setFailed(true);
+      setMessage(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
   function currentRecurrenceRule() {
     const frequency = repeat === "fortnightly" ? "WEEKLY" : repeat === "custom" ? customFrequency : repeat.toUpperCase();
     const parts = repeat === "none" ? [] : [`FREQ=${frequency}`];
@@ -207,6 +228,22 @@ export default function CalendarPage() {
           </button>
         </div>
         <div className="flex gap-2.5 items-center">
+          <button
+            type="button"
+            className="secondary inline-flex min-h-[42px] items-center justify-center rounded-[7px] border border-[#d7e0e5] bg-white px-[14px] py-2 text-[12px] font-semibold text-[#3c5064] hover:bg-[#f0f5f5]"
+            disabled={busy}
+            aria-pressed={selectionMode}
+            onClick={() => {
+              setSelectionMode((active) => !active);
+              setSelectedEvents({});
+            }}
+          >{selectionMode ? "Done selecting" : "Select events"}</button>
+          {Object.keys(selectedEvents).length > 0 && <button
+            type="button"
+            className="secondary inline-flex min-h-[42px] items-center justify-center rounded-[7px] border border-[#d7e0e5] bg-white px-[14px] py-2 text-[12px] font-semibold text-[#a52828] hover:bg-[#fff5f5]"
+            disabled={busy}
+            onClick={deleteSelectedEvents}
+          >Delete selected <span className="ml-1 rounded-full bg-[#fff0f0] px-2 py-0.5 text-[10px]">{Object.keys(selectedEvents).length}</span></button>}
           <input
             ref={fileRef}
             className="sr-only"
@@ -393,11 +430,12 @@ export default function CalendarPage() {
                     {events.length ? (
                       events.map((e) => (
                         <article
-                          className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_h3]:ml-0 [&_>_small]:text-[12px] [&_>_small]:font-semibold [&_>_small]:text-[#536b76] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""}`}
+                          className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_>_small]:text-[12px] [&_>_small]:font-semibold [&_>_small]:text-[#536b76] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""} ${selectedEvents[e.id] ? "ring-2 ring-[#08766055]" : ""}`}
                           key={e.id}
                           style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "#eeeeff" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "var(--status-meeting)", backgroundColor: "var(--status-meeting-tint)" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "var(--status-away)", backgroundColor: "var(--status-away-tint)" } : { borderLeftColor: "var(--status-available)", backgroundColor: "var(--status-available-tint)" }}
                         >
-                          <span>
+                          <div className="mb-1 flex items-start justify-between gap-1">
+                          <span className="block text-[9px] text-[#5e7c8c]">
                             {DateTime.fromISO(e.startTime).setZone(ZONE) < day
                               ? "Continues"
                               : timeText(e.startTime)}{" "}
@@ -407,6 +445,22 @@ export default function CalendarPage() {
                               ? "next day"
                               : timeText(e.endTime)}
                           </span>
+                            {selectionMode && <label className="-mt-1 -mr-1 grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded hover:bg-white/80" title="Select event">
+                            <input
+                              className="!m-0 !h-4 !w-4 !p-0 accent-brand"
+                              type="checkbox"
+                              checked={Boolean(selectedEvents[e.id])}
+                              disabled={busy}
+                              onChange={(event) => setSelectedEvents((current) => {
+                                const next = { ...current };
+                                if (event.target.checked) next[e.id] = { id: e.parentEventId ?? e.id, occurrenceStart: e.occurrenceStart };
+                                else delete next[e.id];
+                                return next;
+                              })}
+                              aria-label={`Select ${e.title} for deletion`}
+                            />
+                            </label>}
+                          </div>
                           <h3>{e.title}</h3>
                           <small className="text-[13px] font-semibold">
                             {e.source === "ICS_IMPORT"

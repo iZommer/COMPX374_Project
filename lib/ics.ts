@@ -9,6 +9,7 @@ export type ImportedEvent = {
   endTime: Date;
   importKey: string;
   source: "ICS_IMPORT";
+  status: "IN_A_MEETING" | "TEACHING";
 };
 // Bound expansion and reject, rather than silently truncate, oversized calendars.
 export function parseCalendar(text: string, now = new Date()): ImportedEvent[] {
@@ -127,12 +128,16 @@ export function parseCalendar(text: string, now = new Date()): ImportedEvent[] {
       const importKey = createHash("sha256")
         .update(`${event.uid}|${nominal.toISOString()}`)
         .digest("hex");
+      const title = (detail.item.summary || "Untitled event").slice(0, 200);
       output.set(importKey, {
-        title: (detail.item.summary || "Untitled event").slice(0, 200),
+        title,
         startTime,
         endTime,
         importKey,
         source: "ICS_IMPORT",
+        status: /\b(lecture|tutorial|teaching|class)\b/i.test(title)
+          ? "TEACHING"
+          : "IN_A_MEETING",
       });
       if (output.size > 2_000)
         throw new Error(

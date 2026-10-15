@@ -117,16 +117,10 @@
 
     <dialog id="settings-dialog">
       <form id="settings-form" method="dialog">
-        <div class="dialog-heading"><h2>Display settings</h2><button value="cancel" aria-label="Close settings">×</button></div>
-        <label>Text size
-          <select id="text-scale"><option value="normal">Normal</option><option value="large">Large</option><option value="largest">Largest</option></select>
-        </label>
-        <label class="check-label"><input id="high-contrast" type="checkbox" /> High contrast</label>
-        <label class="check-label"><input id="pixel-shift" type="checkbox" /> Subtle pixel shift</label>
-        <label>Return to Status after <input id="idle-seconds" type="number" min="10" max="3600" /> seconds</label>
+        <div class="dialog-heading"><h2>Display options</h2><button value="cancel" aria-label="Close settings">×</button></div>
+        <p>Manage display settings from the web app. Use this menu to pair or re-pair the display.</p>
         <div class="dialog-actions">
           <button id="reset-pairing" class="danger-button" type="button">Re-pair display</button>
-          <button id="save-settings" class="primary-button" type="button">Save</button>
         </div>
       </form>
     </dialog>

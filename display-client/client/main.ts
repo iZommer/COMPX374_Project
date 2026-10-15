@@ -181,11 +181,6 @@ function formatDate(value: string | Date, timezone: string): string {
 function applySettings(settings: PublicSettings): void {
   document.documentElement.dataset.textScale = settings.textScale;
   document.documentElement.classList.toggle("high-contrast", settings.highContrast);
-  $("#text-scale").setAttribute("value", settings.textScale);
-  ($("#text-scale") as HTMLSelectElement).value = settings.textScale;
-  ($("#high-contrast") as HTMLInputElement).checked = settings.highContrast;
-  ($("#pixel-shift") as HTMLInputElement).checked = settings.pixelShiftEnabled;
-  ($("#idle-seconds") as HTMLInputElement).value = String(settings.idleReturnSeconds);
   updateDimming(settings);
 }
 
@@ -536,19 +531,6 @@ function wireInteractions(): void {
   $("#admin-hotspot").addEventListener("pointerleave", cancelHold);
   $("#admin-hotspot").addEventListener("pointercancel", cancelHold);
 
-  $("#save-settings").addEventListener("click", async () => {
-    const response = await fetch("/local/settings", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        textScale: ($("#text-scale") as HTMLSelectElement).value,
-        highContrast: ($("#high-contrast") as HTMLInputElement).checked,
-        pixelShiftEnabled: ($("#pixel-shift") as HTMLInputElement).checked,
-        idleReturnSeconds: Number(($("#idle-seconds") as HTMLInputElement).value),
-      }),
-    });
-    if (response.ok) dialog.close();
-  });
   $("#reset-pairing").addEventListener("click", async () => {
     if (!confirm("Clear the display pairing and return to setup?")) return;
     await fetch("/local/reset", { method: "POST" });

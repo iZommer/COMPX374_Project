@@ -29,7 +29,7 @@ export default function DisplaySettingsPage() {
     finally { setSaving(false); }
   }
   return <>
-    <PageHeading eyebrow="YOUR WORKSPACE / DISPLAY" title="Display Client Settings" description="Manage the Raspberry Pi display. Server settings take priority over its local fallback menu." />
+    <PageHeading eyebrow="YOUR WORKSPACE / DISPLAY" title="Display Client Settings" description="Manage the Raspberry Pi display settings from your web app." />
     {!resource.data ? <ResourceState {...resource} /> : <>
       <Notice message={message} error={error} />
       <form onSubmit={save} className="grid max-w-3xl gap-5 rounded-xl border border-line bg-white p-6 shadow-sm">

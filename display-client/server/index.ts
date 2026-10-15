@@ -155,22 +155,6 @@ app.post("/local/setup", async (request, response) => {
   return response.json({ ok: true });
 });
 
-app.post("/local/settings", async (request, response) => {
-  const body = request.body as Partial<PublicSettings>;
-  const allowedScales = ["normal", "large", "largest"];
-  const next: StoredConfig = { ...(storedConfig ?? {}) };
-  if (allowedScales.includes(String(body.textScale))) next.textScale = body.textScale;
-  if (typeof body.highContrast === "boolean") next.highContrast = body.highContrast;
-  if (typeof body.pixelShiftEnabled === "boolean") next.pixelShiftEnabled = body.pixelShiftEnabled;
-  if (typeof body.idleReturnSeconds === "number")
-    next.idleReturnSeconds = Math.min(3600, Math.max(10, Math.round(body.idleReturnSeconds)));
-  storedConfig = next;
-  await atomicWriteJson(configPath, storedConfig);
-  state = { ...state, settings: effectiveSettings() };
-  broadcast(true);
-  return response.json({ ok: true, settings: state.settings });
-});
-
 app.post("/local/reset", async (_request, response) => {
   storedConfig = { ...(storedConfig ?? {}), apiKey: "" };
   await atomicWriteJson(configPath, storedConfig);
