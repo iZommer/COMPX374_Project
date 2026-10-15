@@ -428,6 +428,7 @@ async function render(next: DisplayState): Promise<void> {
     return;
   }
   showScreen("display");
+  updateClock();
   $("#academic-name").textContent = next.payload.academic.name;
   const office = next.payload.contact?.officeLocation?.trim() || "";
   $("#header-office").textContent = office ? `Office ${office}` : "";

@@ -26,7 +26,7 @@ const weekDays = [["MO", "Mon"], ["TU", "Tue"], ["WE", "Wed"], ["TH", "Thu"], ["
 const eventStatuses = [
   ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "var(--status-available)", "var(--status-available-tint)"],
   ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "var(--status-meeting)", "var(--status-meeting-tint)"],
-  ["TEACHING", "Teaching", "In class or facilitating", "♧", "var(--status-teaching)", "#eeeeff"],
+  ["TEACHING", "Teaching", "In class or facilitating", "✎", "var(--status-teaching)", "#eeeeff"],
   ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "var(--status-away)", "var(--status-away-tint)"],
 ] as const;
 const localDateTime = (value: string) =>
