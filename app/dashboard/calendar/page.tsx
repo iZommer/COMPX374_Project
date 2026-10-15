@@ -315,7 +315,7 @@ export default function CalendarPage() {
                 Choose the status visitors will see while this event is happening.
               </span>
               <input type="hidden" name="status" value={eventStatus} />
-              <span className="mx-auto grid w-full max-w-[1000px] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <span className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {eventStatuses.map(([value, label, hint, _icon, color, tint]) => {
                   const selected = eventStatus === value;
                   return (
@@ -324,11 +324,11 @@ export default function CalendarPage() {
                     type="button"
                     aria-pressed={selected}
                     onClick={() => setEventStatus(value)}
-                    className={`flex min-h-[88px] w-full min-w-0 items-center gap-3 rounded-xl border p-4 text-left transition-colors ${selected ? "" : "border-[#e2e9ec] bg-white hover:bg-[#f8fbfa]"}`}
+                    className={`flex min-h-[96px] w-full min-w-0 items-center gap-3 rounded-xl border p-3 text-left transition-colors ${selected ? "" : "border-[#e2e9ec] bg-white hover:bg-[#f8fbfa]"}`}
                     style={selected ? { borderColor: color, backgroundColor: tint, boxShadow: `0 0 0 2px ${color}33` } : undefined}
                   >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full" style={{ color, backgroundColor: tint }}>
-                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-[22px] w-[22px]">
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full" style={{ color, backgroundColor: tint }}>
+                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
                         {value === "AVAILABLE" && <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16.5 9" /></>}
                         {value === "IN_A_MEETING" && <><circle cx="12" cy="12" r="9" /><path d="M8 12h8" /></>}
                         {value === "TEACHING" && <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z" /><path d="M4 5.5v13A2.5 2.5 0 0 1 6.5 16H20M8 7h8" /></>}
@@ -336,10 +336,10 @@ export default function CalendarPage() {
                       </svg>
                     </span>
                     <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                      <span className="block text-[12px] font-bold leading-tight text-ink">{label}</span>
-                      <span className="mt-1 block text-[10px] leading-snug text-muted">{hint}</span>
+                      <span className="block text-[13px] font-bold leading-tight text-ink">{label}</span>
+                      <span className="mt-1 block text-[11px] leading-snug text-muted">{hint}</span>
                     </span>
-                    <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border text-[11px] ${selected ? "text-white" : "border-[#d5dfe3] text-transparent"}`} style={selected ? { borderColor: color, backgroundColor: color } : undefined} aria-hidden="true">{"\u2713"}</span>
+                    <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[12px] ${selected ? "text-white" : "border-[#d5dfe3] text-transparent"}`} style={selected ? { borderColor: color, backgroundColor: color } : undefined} aria-hidden="true">{"\u2713"}</span>
                   </button>
                   );
                 })}
@@ -418,7 +418,7 @@ export default function CalendarPage() {
                             disabled={busy}
                             className="mt-3 flex min-h-[34px] w-full items-center justify-center rounded-md border border-[#d5e4dd] bg-white px-3 text-[11px] font-bold text-brand hover:bg-[#f2f8f5]"
                             onClick={() => {
-                              endEdited.current = true;
+                              endEdited.current = false;
                               setAdding(false);
                               setEditing(e);
                               setStartValue(localDateTime(e.startTime));
