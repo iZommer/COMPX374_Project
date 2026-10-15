@@ -51,11 +51,11 @@ export default function DashboardLayout({
           className="flex min-w-0 items-center rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand mobile:gap-3"
           href="/dashboard/availability"
         >
-          <span className="flex w-[254px] shrink-0 items-center justify-center compact:w-[222px] mobile:w-auto">
+          <span className="flex w-[254px] shrink-0 items-center justify-start pl-[18px] compact:w-[222px] compact:pl-2 mobile:w-auto mobile:pl-0">
             <img
               src="/logos/waikato_university.jpeg"
               alt="University of Waikato"
-              className="h-auto max-h-[49px] w-auto max-w-[160px] object-contain mobile:max-w-[110px]"
+              className="h-auto max-h-[55px] w-auto max-w-[185px] object-contain mobile:max-h-[52px] mobile:max-w-[125px]"
             />
           </span>
           <div className="min-w-0 border-l border-line pl-9 compact:pl-[25px] mobile:pl-3">

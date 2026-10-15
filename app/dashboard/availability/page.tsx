@@ -308,14 +308,14 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                   <span className="rounded-full bg-[#e1f2e9] px-3 py-1 text-[10px] font-bold text-[#18734d]">Override on</span>
                 )}
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 mobile:grid-cols-1">
-                <label className="!mt-0">
-                  Temporary status override
-                  <span className="mt-2 flex gap-2">
-                    {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => <button key={s.id} type="button" aria-pressed={overrideStatus === s.id} className={`min-h-11 flex-1 rounded-md border px-3 text-sm ${overrideStatus === s.id ? "border-brand bg-brand text-white" : "border-line bg-white text-ink"}`} onClick={() => { setOverrideStatus(s.id); setOverrideUntil(DateTime.now().setZone("Pacific/Auckland").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")); change(); }}>{s.label}</button>)}
-                  </span>
-                </label>
-                <label className="!mt-0">
+              <div className="mt-4 grid grid-cols-2 items-start gap-3 mobile:grid-cols-1">
+                <div className="text-[12px] font-semibold text-ink">
+                  <span className="block">Temporary status override</span>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {statuses.filter((s) => s.id === "AVAILABLE" || s.id === "OUT_OF_OFFICE").map((s) => <button key={s.id} type="button" aria-pressed={overrideStatus === s.id} className={`min-h-11 w-full rounded-md border px-3 text-sm font-semibold ${overrideStatus === s.id ? "border-brand bg-brand text-white" : "border-line bg-white text-ink"}`} onClick={() => { setOverrideStatus(s.id); setOverrideUntil(DateTime.now().setZone("Pacific/Auckland").plus({ hours: 1 }).toFormat("yyyy-MM-dd'T'HH:mm")); change(); }}>{s.label}</button>)}
+                  </div>
+                </div>
+                <label className="!mt-0 text-[12px]">
                   Keep override until
                   <DateTime24Field required={Boolean(overrideStatus)} value={overrideUntil} disabled={!overrideStatus} onChange={(value) => { setOverrideUntil(value); change(); }} />
                 </label>
@@ -383,14 +383,6 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 {previewMessage}
               </p>
             )}
-            <div
-              className="leading-[1] mt-[35px] flex justify-around items-end text-[#7a9f94] text-[65px] h-[95px] opacity-[0.6] [&_span:nth-child(2)]:text-[90px] compact:h-[95px] compact:mt-5"
-              aria-hidden="true"
-            >
-              <span>⌂</span>
-              <span>♧</span>
-              <span>⌂</span>
-            </div>
             <p className="text-[8px] tracking-[1.4px] bg-[#e5eeea] text-center my-0 mx-[-20px] p-[9px]">
               KEI HEA A NIC? · WHERE IS NIC?
             </p>

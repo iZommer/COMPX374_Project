@@ -429,6 +429,9 @@ async function render(next: DisplayState): Promise<void> {
   }
   showScreen("display");
   $("#academic-name").textContent = next.payload.academic.name;
+  const office = next.payload.contact?.officeLocation?.trim() || "";
+  $("#header-office").textContent = office ? `Office ${office}` : "";
+  $("#header-office").hidden = !office;
   $("#clock-banner").hidden = !next.clockWarning;
   const warning = $("#warning-banner");
   if (next.staleness === "fresh") warning.hidden = true;
