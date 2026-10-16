@@ -27,6 +27,15 @@ test("manual recurrence expands in range and skips a cancelled instance", () => 
   assert.deepEqual(rows.map((row) => row.startTime.toISOString()), [start.toISOString(), "2026-02-03T20:00:00.000Z"]);
   assert.ok(rows.every((row) => row.parentEventId === "series"));
 });
+test("active recurring occurrence is included when the lookup range starts mid-event", () => {
+  const first = new Date("2026-10-05T20:00:00Z");
+  const now = new Date("2026-10-05T20:30:00Z");
+  const event = { id: "series", title: "Class", startTime: first, endTime: new Date("2026-10-05T21:00:00Z"), status: "OUT_OF_OFFICE" as const, source: "MANUAL", recurrenceRule: "FREQ=WEEKLY;COUNT=4", recurrenceExceptions: [] };
+  const rows = expandSeries([event], now, new Date(+now + 1));
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].status, "OUT_OF_OFFICE");
+  assert.equal(+rows[0].startTime, +first);
+});
 test("moved recurrence exceptions appear at their replacement time and preserve COUNT", () => {
   const first = new Date("2026-02-01T20:00:00Z");
   const nominal = new Date("2026-02-02T20:00:00Z");

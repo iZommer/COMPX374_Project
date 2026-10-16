@@ -18,7 +18,10 @@ export function expandSeries<T extends Series>(series: T[], start: Date, end: Da
       continue;
     }
     const exdates = event.recurrenceExceptions.filter((e) => e.cancelled || e.startTime).map((e) => `EXDATE;TZID=${ZONE}:${localStamp(e.occurrenceStart)}`).join("\r\n");
-    const from = DateTime.fromJSDate(start).setZone(ZONE).plus({ months: 1 }).toJSDate();
+    // Include occurrences immediately before the requested range. Besides
+    // overlapping events, this is needed when resolving an event already in
+    // progress (the active status lookup uses a one-millisecond range).
+    const from = DateTime.fromJSDate(start).setZone(ZONE).minus({ months: 1 }).toJSDate();
     const source = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:${event.id}\r\nSUMMARY:${escapeText(event.title)}\r\nDTSTART;TZID=${ZONE}:${localStamp(event.startTime)}\r\nDTEND;TZID=${ZONE}:${localStamp(event.endTime)}\r\nRRULE:${event.recurrenceRule}\r\n${exdates ? `${exdates}\r\n` : ""}END:VEVENT\r\nEND:VCALENDAR`;
     const rows = parseCalendar(source, from);
     const exceptions = new Map(event.recurrenceExceptions.map((x) => [keyFor(event.id, x.occurrenceStart), x]));
