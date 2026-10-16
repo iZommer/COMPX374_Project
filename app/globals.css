@@ -81,3 +81,58 @@
     @apply max-w-[360px];
   }
 }
+
+.login-content {
+  padding-top: max(8vh, 32px);
+}
+
+.login-card-grid {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.login-card-grid h1 {
+  font-size: 36px;
+}
+
+.auth-input:focus {
+  border-color: var(--waikato-red);
+  box-shadow: 0 0 0 3px #d4010020;
+}
+
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: #17283a;
+  caret-color: #17283a;
+}
+
+.auth-input:-webkit-autofill:focus {
+  border-color: var(--waikato-red);
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset, 0 0 0 3px #d4010020;
+  box-shadow: 0 0 0 1000px #ffffff inset, 0 0 0 3px #d4010020;
+}
+
+@media (max-width: 639px) {
+  .login-content {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .login-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .login-card-grid h1 {
+    font-size: 29px;
+  }
+
+  .login-intro-panel {
+    padding: 24px;
+  }
+
+  .login-form-panel {
+    padding: 24px;
+  }
+}

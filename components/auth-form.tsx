@@ -53,16 +53,16 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   return (
     <main className="min-h-screen bg-canvas">
       <AppHeader variant="login" />
-      <div className="login-content flex min-h-[calc(100vh-80px)] justify-center px-6 pb-10 mobile:min-h-[calc(100vh-76px)] mobile:px-4">
+      <div className="login-content flex min-h-[calc(100vh-80px)] justify-center px-6 pb-10 mobile:min-h-[calc(100vh-76px)]">
         <div className="login-card-grid grid h-fit w-full max-w-[900px] overflow-hidden rounded-[11px] border border-line bg-white shadow-[0_3px_12px_#152e4304]">
-        <section className="flex flex-col justify-center bg-[var(--waikato-light)] px-10 py-12 compact:px-8 mobile:px-6 mobile:py-8">
+        <section className="login-intro-panel flex flex-col justify-center bg-[var(--waikato-light)] px-10 py-12">
           <p className="eyebrow text-[12px] font-bold tracking-[1.8px] text-ink">ACADEMIC DIARY</p>
           <h1 className="mt-1 text-ink">Kei Hea a Nic?</h1>
           <p className="mt-1 font-serif text-[22px] text-muted">Where is Nic?</p>
           <div className="my-6 h-[3px] w-10 rounded-full bg-brand" />
           <p className="max-w-[340px] text-[14px] text-ink">Keep your availability, weekly diary and contact details in one place.</p>
         </section>
-        <section className="w-full p-10 compact:p-8 mobile:p-6">
+        <section className="login-form-panel w-full p-10">
         <h2>{register ? "Create your account" : "Welcome back"}</h2>
         <p className="mt-1 text-[12px]">
           {register
