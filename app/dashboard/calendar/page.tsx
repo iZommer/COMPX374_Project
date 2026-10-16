@@ -274,14 +274,19 @@ export default function CalendarPage() {
             disabled={busy}
             onClick={() => {
               endEdited.current = false;
-              const start = DateTime.now().setZone(ZONE).startOf("minute").toFormat("yyyy-MM-dd'T'HH:mm");
+              const now = DateTime.now().setZone(ZONE);
+              const nextSlot = DateTime.fromMillis(Math.ceil(now.toMillis() / 1_800_000) * 1_800_000).setZone(ZONE);
+              const start = nextSlot.toFormat("yyyy-MM-dd'T'HH:mm");
               setStartValue(start);
               setEndValue(oneHourLaterLocal(start));
               setAdding(!adding);
               setEditing(null);
               setEventStatus("IN_A_MEETING");
               setRepeat("none"); setRepeatDays([]); setRepeatEnd("never"); setRepeatDate(""); setRepeatCount("10"); setCustomFrequency("WEEKLY"); setCustomInterval("1");
-              if (!adding && selectedDay) { const selectedStart = DateTime.fromISO(`${selectedDay}T09:00`, { zone: ZONE }).toFormat("yyyy-MM-dd'T'HH:mm"); setStartValue(selectedStart); setEndValue(oneHourLaterLocal(selectedStart)); }
+              if (!adding && selectedDay) {
+                const selectedStart = (selectedDay === now.toISODate() ? nextSlot : DateTime.fromISO(`${selectedDay}T09:00`, { zone: ZONE })).toFormat("yyyy-MM-dd'T'HH:mm");
+                setStartValue(selectedStart); setEndValue(oneHourLaterLocal(selectedStart));
+              }
             }}
           >
             {adding ? "Close form" : "+ Add event"}
