@@ -1,4 +1,10 @@
 export type ResolvableStatus = "AVAILABLE" | "IN_A_MEETING" | "TEACHING" | "OUT_OF_OFFICE";
+export const statusPresentation = {
+  AVAILABLE: { label: "Available", tagline: "Happy to be interrupted" },
+  IN_A_MEETING: { label: "In a meeting", tagline: "Please come back later" },
+  TEACHING: { label: "Teaching", tagline: "In class or facilitating" },
+  OUT_OF_OFFICE: { label: "Out of office", tagline: "Away from my desk" },
+} as const;
 export function resolveStatus(input: {
   now: Date;
   overrideStatus?: ResolvableStatus | null;

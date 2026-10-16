@@ -21,7 +21,7 @@ export function DateTime24Field({ label, name, value, onChange, disabled, requir
       {name && <input type="hidden" name={name} value={value} />}
       <span className="mt-2 grid grid-cols-[minmax(0,1fr)_5.5rem_5.5rem] gap-2">
         <input aria-label={label ? `${label} date` : "Date"} type="date" value={date} required={fieldRequired} disabled={disabled} onChange={(event) => update(event.target.value, time)} />
-        <select aria-label={label ? `${label} hour (24-hour)` : "Hour (24-hour)"} value={hour} required={fieldRequired} disabled={disabled} onChange={(event) => update(date, `${event.target.value}:${minute}`)}>
+        <select aria-label={label ? `${label} hour (24-hour)` : "Hour (24-hour)"} value={hour} required={fieldRequired} disabled={disabled} onChange={(event) => update(date, `${event.target.value}:00`)}>
           <option value="">HH</option>
           {Array.from({ length: 24 }, (_, n) => String(n).padStart(2, "0")).map((n) => <option key={n} value={n}>{n}</option>)}
         </select>

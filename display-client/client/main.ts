@@ -222,24 +222,25 @@ function resetIdleTimer(): void {
 }
 
 const statusPresentation = {
-  AVAILABLE: { label: "Available", className: "available" },
-  IN_A_MEETING: { label: "In a meeting", className: "meeting" },
-  TEACHING: { label: "Teaching", className: "teaching" },
-  OUT_OF_OFFICE: { label: "Out of office", className: "away" },
+  AVAILABLE: { className: "available" },
+  IN_A_MEETING: { className: "meeting" },
+  TEACHING: { className: "teaching" },
+  OUT_OF_OFFICE: { className: "away" },
 } as const;
 
 function renderStatus(payload: DiaryPayload, settings: PublicSettings): void {
   const availability = payload.availability;
   const presentation = availability
-    ? statusPresentation[availability.status]
-    : { label: "Status unavailable", className: "unknown" };
+    ? { ...statusPresentation[availability.status], label: availability.label ?? "Status unavailable", tagline: availability.tagline ?? "" }
+    : { label: "Status unavailable", tagline: "", className: "unknown" };
   const card = $("#status-card");
   card.className = `status-card status-${presentation.className}`;
   $("#status-label").textContent = presentation.label;
-  $("#return-time").textContent = availability?.expectedReturnTime
+  $("#return-time").textContent = availability?.status !== "AVAILABLE" && availability?.expectedReturnTime
     ? `Expected back ${formatDate(availability.expectedReturnTime, settings.timezone)} at ${formatTime(availability.expectedReturnTime, settings.timezone)}`
     : "";
   $("#custom-message").textContent = availability?.customMessage || "";
+  $("#status-tagline").textContent = presentation.tagline;
 }
 
 function renderTodayCalendar(payload: DiaryPayload, settings: PublicSettings): void {
@@ -263,7 +264,7 @@ function renderTodayCalendar(payload: DiaryPayload, settings: PublicSettings): v
   list.hidden = events.length === 0;
   for (const event of events) {
     const item = document.createElement("li");
-    item.className = "today-event";
+    item.className = `today-event${event.status ? ` event-status-${event.status.toLowerCase()}` : ""}`;
     const ongoing = !state?.clockWarning && Date.parse(event.startTime) <= now.getTime() && Date.parse(event.endTime) > now.getTime();
     item.classList.toggle("is-current", ongoing);
     const time = document.createElement("p");

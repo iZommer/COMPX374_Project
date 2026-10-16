@@ -1,8 +1,9 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import { api, errorText } from "@/lib/client-api";
 import { formatTime, localToISO, oneHourLaterLocal, ZONE } from "@/lib/time";
+import { statusPresentation } from "@/lib/status-resolution";
 import { DateTime24Field } from "@/components/DateTime24Field";
 import {
   Notice,
@@ -35,6 +36,7 @@ export default function CalendarPage() {
   const [week, setWeek] = useState(() =>
     DateTime.now().setZone(ZONE).startOf("week"),
   );
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const resource = useResource<Event[]>(`calendar?week=${week.toISODate()}`);
   const timeSettings = useResource<{ timeFormat24h: boolean }>("display-settings");
   const show24Hour = timeSettings.data?.timeFormat24h ?? true;
@@ -42,6 +44,7 @@ export default function CalendarPage() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
   const [scopeAction, setScopeAction] = useState<{ kind: "save"; form: FormData } | { kind: "delete" } | null>(null);
+  const [chosenScope, setChosenScope] = useState<EventScope>("all");
   const [startValue, setStartValue] = useState("");
   const [endValue, setEndValue] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
@@ -59,7 +62,13 @@ export default function CalendarPage() {
   const [failed, setFailed] = useState(false);
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const endEdited = useRef(false);
+  useEffect(() => {
+    if (!editing || !formRef.current) return;
+    formRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    formRef.current.querySelector<HTMLInputElement>('input[name="title"]')?.focus({ preventScroll: true });
+  }, [editing]);
   async function deleteSelectedEvents() {
     const events = Object.values(selectedEvents);
     if (!events.length || !window.confirm(`Delete ${events.length} selected event${events.length === 1 ? "" : "s"}?`)) return;
@@ -123,6 +132,7 @@ export default function CalendarPage() {
     const form = new FormData(e.currentTarget);
     form.set("recurrenceRule", currentRecurrenceRule() ?? "");
     if (editing?.parentEventId && editing.occurrenceStart) {
+      setChosenScope("all");
       setScopeAction({ kind: "save", form });
       return;
     }
@@ -153,7 +163,6 @@ export default function CalendarPage() {
       setAdding(false);
       setEditing(null);
       setEventStatus("IN_A_MEETING");
-      setWeek(DateTime.fromISO(start, { zone: ZONE }).startOf("week"));
       resource.retry();
     } catch (e) {
       setFailed(true);
@@ -179,7 +188,7 @@ export default function CalendarPage() {
   }
   function requestDeleteEvent() {
     if (!editing || !window.confirm(`Delete “${editing.title}”?`)) return;
-    if (editing.parentEventId && editing.occurrenceStart) setScopeAction({ kind: "delete" });
+    if (editing.parentEventId && editing.occurrenceStart) { setChosenScope("all"); setScopeAction({ kind: "delete" }); }
     else void deleteEvent("all");
   }
   async function chooseScope(scope: EventScope) {
@@ -203,7 +212,7 @@ export default function CalendarPage() {
           <button
             aria-label="Previous week"
             className="secondary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-white border-[#d7e0e5] text-[#3c5064] [&:hover]:bg-[#f0f5f5]"
-            onClick={() => setWeek(week.minus({ weeks: 1 }))}
+            onClick={() => { setWeek(week.minus({ weeks: 1 })); setSelectedDay(null); }}
           >
             ←
           </button>
@@ -214,14 +223,14 @@ export default function CalendarPage() {
           <button
             aria-label="Next week"
             className="secondary inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-white border-[#d7e0e5] text-[#3c5064] [&:hover]:bg-[#f0f5f5]"
-            onClick={() => setWeek(week.plus({ weeks: 1 }))}
+            onClick={() => { setWeek(week.plus({ weeks: 1 })); setSelectedDay(null); }}
           >
             →
           </button>
           <button
             className="text-[12px] text-brand font-semibold py-2 px-0"
             onClick={() =>
-              setWeek(DateTime.now().setZone(ZONE).startOf("week"))
+              { setWeek(DateTime.now().setZone(ZONE).startOf("week")); setSelectedDay(null); }
             }
           >
             This week
@@ -271,6 +280,8 @@ export default function CalendarPage() {
               setAdding(!adding);
               setEditing(null);
               setEventStatus("IN_A_MEETING");
+              setRepeat("none"); setRepeatDays([]); setRepeatEnd("never"); setRepeatDate(""); setRepeatCount("10"); setCustomFrequency("WEEKLY"); setCustomInterval("1");
+              if (!adding && selectedDay) { const selectedStart = DateTime.fromISO(`${selectedDay}T09:00`, { zone: ZONE }).toFormat("yyyy-MM-dd'T'HH:mm"); setStartValue(selectedStart); setEndValue(oneHourLaterLocal(selectedStart)); }
             }}
           >
             {adding ? "Close form" : "+ Add event"}
@@ -286,13 +297,13 @@ export default function CalendarPage() {
             {recurrenceChanged && <p className="mt-3 rounded-md border border-[#e9d39d] bg-[#fff9e8] p-3 text-[12px] text-[#705817]">You changed the repeat days. That changes the series schedule, so “This event only” cannot apply that change. Choose “This and following” or “All events”.</p>}
             <div className="mt-5 grid gap-2">
               {([["this", "This event only", "Change just this date."], ["following", "This and following", "Change this date and later repeats."], ["all", "All events", "Change the entire repeating series."]] as const).map(([scope, title, detail]) => (
-                <button key={scope} type="button" disabled={scope === "this" && recurrenceChanged} className="flex min-h-14 flex-col items-start rounded-lg border border-[#d8e1e5] bg-white px-4 py-2 text-left hover:border-brand hover:bg-[#f3faf7] disabled:cursor-not-allowed disabled:opacity-45" onClick={() => void chooseScope(scope)}>
+                <button key={scope} type="button" aria-pressed={chosenScope === scope} disabled={scope === "this" && recurrenceChanged} className={`flex min-h-14 flex-col items-start rounded-lg border px-4 py-2 text-left hover:border-brand hover:bg-[#f3faf7] disabled:cursor-not-allowed disabled:opacity-45 ${chosenScope === scope ? "border-brand bg-[#eaf6ef] ring-2 ring-[#08766022]" : "border-[#d8e1e5] bg-white"}`} onClick={() => setChosenScope(scope)}>
                   <span className="text-[13px] font-bold text-ink">{title}</span>
                   <span className="text-[11px] font-normal text-muted">{detail}</span>
                 </button>
               ))}
             </div>
-            <button type="button" className="secondary mt-4 min-h-10 px-4" onClick={() => setScopeAction(null)}>Cancel</button>
+            <div className="mt-4 flex gap-2"><button type="button" className="primary min-h-10 px-4" onClick={() => void chooseScope(chosenScope)}>{scopeAction.kind === "save" ? "Apply changes" : "Delete"}</button><button type="button" className="secondary min-h-10 px-4" onClick={() => setScopeAction(null)}>Cancel</button></div>
           </section>
         </div>
       )}
@@ -306,8 +317,9 @@ export default function CalendarPage() {
       )}
       {(adding || editing) && (
         <form
+          ref={formRef}
           key={editing?.id ?? "new-event"}
-          className="bg-white border border-line rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] mb-[22px] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5 [&_fieldset]:grid [&_fieldset]:gap-[18px] [&_fieldset]:mt-5 [&_button]:justify-self-start"
+          className={`bg-white border rounded-[11px] p-[27px] shadow-[0_3px_12px_#152e4304] mb-[22px] [&_>_p:not(.eyebrow)]:mt-[7px] wide:p-8 mobile:p-5 [&_fieldset]:grid [&_fieldset]:gap-[18px] [&_fieldset]:mt-5 [&_button]:justify-self-start ${editing ? "border-brand ring-2 ring-[#08766022]" : "border-line"}`}
           onSubmit={saveEvent}
         >
           <h2>{editing ? "Edit event" : "Add an event"}</h2>
@@ -353,7 +365,8 @@ export default function CalendarPage() {
               </span>
               <input type="hidden" name="status" value={eventStatus} />
               <span className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {eventStatuses.map(([value, label, hint, _icon, color, tint]) => {
+                {eventStatuses.map(([value, _label, _hint, _icon, color, tint]) => {
+                  const { label, tagline: hint } = statusPresentation[value];
                   const selected = eventStatus === value;
                   return (
                   <button
@@ -418,8 +431,11 @@ export default function CalendarPage() {
               const today = day.hasSame(DateTime.now().setZone(ZONE), "day");
               return (
                 <section
-                  className={`border-r border-r-line min-w-0 [&:last-child]:border-0 [&_>_header]:h-[90px] [&_>_header]:text-center [&_>_header]:border-b [&_>_header]:border-b-line [&_>_header]:p-3 [&_>_header]:relative [&_>_header_>_span]:block [&_>_header_>_span]:uppercase [&_>_header_>_span]:tracking-[1.2px] [&_>_header_>_span]:text-[9px] [&_>_header_>_span]:text-[#83918f] [&_>_header_>_strong]:text-[23px] [&_>_header_>_strong]:font-medium [&_>_header_>_strong]:block [&_>_header_>_small]:text-[8px] [&_>_header_>_small]:text-brand [&_>_header_>_small]:block [&_>_header_>_small]:leading-[1] [&.today]:bg-[#f8fcfa] [&.today_header_strong]:text-brand mobile:border-0 mobile:border-b mobile:border-b-line mobile:grid mobile:grid-cols-[70px_1fr] mobile:[&_>_header]:h-auto mobile:[&_>_header]:border-0 mobile:[&_>_header]:min-h-[95px] mobile:[&_>_header]:py-[15px] mobile:[&_>_header]:px-1.5 ${today ? "today" : ""}`}
+                  className={`border-r border-r-line min-w-0 [&:last-child]:border-0 [&_>_header]:h-[90px] [&_>_header]:text-center [&_>_header]:border-b [&_>_header]:border-b-line [&_>_header]:p-3 [&_>_header]:relative [&_>_header_>_span]:block [&_>_header_>_span]:uppercase [&_>_header_>_span]:tracking-[1.2px] [&_>_header_>_span]:text-[9px] [&_>_header_>_span]:text-[#83918f] [&_>_header_>_strong]:text-[23px] [&_>_header_>_strong]:font-medium [&_>_header_>_strong]:block [&_>_header_>_small]:text-[8px] [&_>_header_>_small]:text-brand [&_>_header_>_small]:block [&_>_header_>_small]:leading-[1] [&.today]:bg-[#f8fcfa] [&.today_header_strong]:text-brand mobile:border-0 mobile:border-b mobile:border-b-line mobile:grid mobile:grid-cols-[70px_1fr] mobile:[&_>_header]:h-auto mobile:[&_>_header]:border-0 mobile:[&_>_header]:min-h-[95px] mobile:[&_>_header]:py-[15px] mobile:[&_>_header]:px-1.5 ${today ? "today" : ""} ${selectedDay === day.toISODate() ? "ring-2 ring-inset ring-brand bg-[#eaf6ef]" : ""}`}
                   key={index}
+                  onClick={() => setSelectedDay(day.toISODate())}
+                  role="button"
+                  aria-pressed={selectedDay === day.toISODate()}
                 >
                   <header>
                     <span>{day.toFormat("ccc")}</span>
@@ -462,7 +478,7 @@ export default function CalendarPage() {
                             </label>}
                           </div>
                           <h3>{e.title}</h3>
-                          <small className="text-[13px] font-semibold">
+                          <small className="block min-w-0 text-[clamp(9px,2vw,13px)] leading-snug font-semibold [overflow-wrap:anywhere]">
                             {e.source === "ICS_IMPORT"
                               ? "Imported"
                               : "Manual event"} · {eventStatuses.find(([value]) => value === e.status)?.[1] ?? "In a meeting"}

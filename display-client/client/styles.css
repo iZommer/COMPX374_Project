@@ -87,8 +87,12 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .today-heading > p:last-child { margin: 0; color: var(--muted); font-size: .9rem; }
 .today-events { min-height: 0; margin: .75rem 0 0; padding: 0; list-style: none; overflow-y: auto; overscroll-behavior: contain; }
 .today-event { padding: .75rem; margin-bottom: .65rem; border-left: 4px solid var(--line); border-radius: .4rem; background: var(--paper); overflow-wrap: anywhere; }
+.today-event.event-status-available { border-left-color: var(--status-available); background: var(--status-available-tint); }
+.today-event.event-status-in_a_meeting { border-left-color: var(--status-meeting); background: var(--status-meeting-tint); }
+.today-event.event-status-teaching { border-left-color: var(--status-teaching); background: var(--status-teaching-tint); }
+.today-event.event-status-out_of_office { border-left-color: var(--status-away); background: var(--status-away-tint); }
 .today-event:last-child { margin-bottom: 0; }
-.today-event.is-current { border-color: var(--accent); background: #e7f6f4; }
+.today-event.is-current { outline: 2px solid var(--accent); outline-offset: 1px; }
 .today-event-time { margin: 0 0 .35rem; color: var(--muted); font-size: .85rem; font-weight: 700; }
 .today-event h3 { margin: 0; font-size: 1.05rem; line-height: 1.3; }
 .today-event-now { display: inline-block; margin-top: .5rem; color: var(--accent); font-size: .75rem; font-weight: 800; text-transform: uppercase; }

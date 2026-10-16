@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { HttpError, json, route } from "@/lib/http";
 import { ZONE } from "@/lib/time";
 import { DateTime } from "luxon";
-import { resolveStatus } from "@/lib/status-resolution";
+import { resolveStatus, statusPresentation } from "@/lib/status-resolution";
 import { expandSeries } from "@/lib/recurrence";
 export const dynamic = "force-dynamic";
 export async function GET(
@@ -65,7 +65,7 @@ export async function GET(
         event.startTime <= now && event.endTime > now,
     );
     const resolved = resolveStatus({ now, overrideStatus: a.availability?.overrideStatus, overrideUntil: a.availability?.overrideUntil, calendar: currentEvent ? { title: currentEvent.title, status: currentEvent.status, endTime: currentEvent.endTime } : null });
-    const availability = { status: resolved.status, expectedReturnTime: resolved.expectedReturnTime?.toISOString() ?? null, customMessage: resolved.source === "override" ? a.availability?.overrideMessage : resolved.customMessage, updatedAt: now };
+    const availability = { status: resolved.status, label: statusPresentation[resolved.status].label, tagline: statusPresentation[resolved.status].tagline, expectedReturnTime: resolved.status === "AVAILABLE" ? null : resolved.expectedReturnTime?.toISOString() ?? null, customMessage: resolved.source === "override" ? a.availability?.overrideMessage : resolved.customMessage, updatedAt: now };
     return json({
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),
