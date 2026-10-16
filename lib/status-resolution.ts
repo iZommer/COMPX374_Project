@@ -1,9 +1,9 @@
 export type ResolvableStatus = "AVAILABLE" | "IN_A_MEETING" | "TEACHING" | "OUT_OF_OFFICE";
 export const statusPresentation = {
-  AVAILABLE: { label: "Available", tagline: "Happy to be interrupted" },
-  IN_A_MEETING: { label: "In a meeting", tagline: "Please come back later" },
-  TEACHING: { label: "Teaching", tagline: "In class or facilitating" },
-  OUT_OF_OFFICE: { label: "Out of office", tagline: "Away from my desk" },
+  AVAILABLE: { label: "Available" },
+  IN_A_MEETING: { label: "In a meeting" },
+  TEACHING: { label: "Teaching" },
+  OUT_OF_OFFICE: { label: "Out of office" },
 } as const;
 export function resolveStatus(input: {
   now: Date;

@@ -17,25 +17,21 @@ const statuses = [
   {
     id: "AVAILABLE",
     label: "Available",
-    hint: "Happy to be interrupted",
     color: "[--status:var(--status-available)] [--tint:var(--status-available-tint)] [--pale:#f0f8f3]",
   },
   {
     id: "IN_A_MEETING",
     label: "In a meeting",
-    hint: "Please come back later",
     color: "[--status:var(--status-meeting)] [--tint:var(--status-meeting-tint)] [--pale:#fff5f3]",
   },
   {
     id: "TEACHING",
     label: "Teaching",
-    hint: "In class or facilitating",
     color: "[--status:var(--status-teaching)] [--tint:#eeeeff] [--pale:#f6f6ff]",
   },
   {
     id: "OUT_OF_OFFICE",
     label: "Out of office",
-    hint: "Away from my desk",
     color: "[--status:var(--status-away)] [--tint:var(--status-away-tint)] [--pale:#f4f6f8]",
   },
 ];
@@ -138,12 +134,12 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
   const previewDetail = dirty
     ? overrideStatus && overrideUntil
       ? `Until ${overrideUntil.replace("T", " at ")}`
-      : previewStatus.hint
+      : ""
     : initial.effectiveSource === "calendar"
       ? `From ${initial.activeEventTitle || "current calendar event"}`
       : initial.effectiveSource === "override" && initial.overrideUntil
         ? `Override until ${localInput(initial.overrideUntil).replace("T", " at ")}`
-        : previewStatus.hint;
+        : "Using your saved availability";
   const previewMessage = dirty
     ? overrideStatus ? overrideMessage : message
     : effective.customMessage;
@@ -251,7 +247,6 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                     <StatusIcon status={s.id as StatusIconName} className="h-6 w-6" />
                   </span>
                   <strong>{s.label}</strong>
-                  <span>{s.hint}</span>
                   {status === s.id && (
                     <span
                       className="selected-tick absolute right-[7px] top-1 text-[11px] text-[var(--status)]"

@@ -10,7 +10,6 @@ export type AvailabilityStatus = (typeof availabilityStatuses)[number];
 export interface Availability {
   status: AvailabilityStatus;
   label?: string;
-  tagline?: string;
   expectedReturnTime?: string | null;
   customMessage?: string | null;
   updatedAt: string;

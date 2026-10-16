@@ -372,7 +372,7 @@ export default function CalendarPage() {
               <input type="hidden" name="status" value={eventStatus} />
               <span className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {eventStatuses.map(([value, color, tint]) => {
-                  const { label, tagline: hint } = statusPresentation[value];
+                  const { label } = statusPresentation[value];
                   const selected = eventStatus === value;
                   return (
                   <button
@@ -388,7 +388,6 @@ export default function CalendarPage() {
                     </span>
                     <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
                       <span className="block text-[13px] font-bold leading-tight text-ink">{label}</span>
-                      <span className="mt-1 block text-[11px] leading-snug text-muted">{hint}</span>
                     </span>
                     <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[12px] ${selected ? "text-white" : "border-[#d5dfe3] text-transparent"}`} style={selected ? { borderColor: color, backgroundColor: color } : undefined} aria-hidden="true">{"\u2713"}</span>
                   </button>

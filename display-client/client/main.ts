@@ -231,8 +231,8 @@ const statusPresentation = {
 function renderStatus(payload: DiaryPayload, settings: PublicSettings): void {
   const availability = payload.availability;
   const presentation = availability
-    ? { ...statusPresentation[availability.status], label: availability.label ?? "Status unavailable", tagline: availability.tagline ?? "" }
-    : { label: "Status unavailable", tagline: "", className: "unknown" };
+    ? { ...statusPresentation[availability.status], label: availability.label ?? "Status unavailable" }
+    : { label: "Status unavailable", className: "unknown" };
   const card = $("#status-card");
   card.className = `status-card status-${presentation.className}`;
   $("#status-label").textContent = presentation.label;
@@ -240,7 +240,6 @@ function renderStatus(payload: DiaryPayload, settings: PublicSettings): void {
     ? `Expected back ${formatDate(availability.expectedReturnTime, settings.timezone)} at ${formatTime(availability.expectedReturnTime, settings.timezone)}`
     : "";
   $("#custom-message").textContent = availability?.customMessage || "";
-  $("#status-tagline").textContent = presentation.tagline;
 }
 
 function renderTodayCalendar(payload: DiaryPayload, settings: PublicSettings): void {
