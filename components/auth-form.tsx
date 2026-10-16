@@ -8,6 +8,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { clientAuth } from "@/lib/firebase";
+import { AppHeader } from "@/components/app-header";
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -50,42 +51,30 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     }
   }
   return (
-    <main className="min-h-screen grid grid-cols-2 mobile:block">
-      <section className="bg-navy text-white py-[70px] px-[12%] flex flex-col justify-center [&_.eyebrow]:text-[#a4bbc9] [&_h1]:text-[51px] [&_h1]:mt-[60px] [&_>_p:not(.eyebrow):not(.auth-translation)]:text-[30px] [&_>_p:not(.eyebrow):not(.auth-translation)]:leading-[1.4] [&_>_p:not(.eyebrow):not(.auth-translation)]:text-[#e3efee] [&_>_p:not(.eyebrow):not(.auth-translation)]:tracking-[-0.5px] [&_>_span]:text-[13px] [&_>_span]:text-[#99adbd] [&_>_span]:mt-5 [&_>_span]:max-w-[300px] mobile:p-[30px] mobile:[&_h1]:text-[32px] mobile:[&_h1]:mt-2.5 mobile:[&_h1]:mr-0 mobile:[&_h1]:mb-0 mobile:[&_h1]:ml-0 mobile:[&_.eyebrow]:text-[8px] mobile:[&_.intro-rule]:hidden mobile:[&_>_span]:hidden mobile:[&_>_p:not(.eyebrow):not(.auth-translation)]:hidden">
-        <p className="eyebrow text-[10px] tracking-[1.8px] font-bold text-[#738293] mb-3.5">
-          UNIVERSITY OF WAIKATO · SCMS
-        </p>
-        <h1>Kei Hea a Nic?</h1>
-        <p className="auth-translation text-[#a7c3cc] font-serif text-[24px] mt-[9px] mobile:text-[18px]">
-          Where is Nic?
-        </p>
-        <div className="intro-rule w-[43px] h-[3px] bg-[#dc825c] my-10 mx-0" />
-        <p>
-          A little clarity.
-          <br />A better connection.
-        </p>
-        <span>
-          Keep your availability, weekly diary and contact details in one place.
-        </span>
-      </section>
-      <section className="self-center justify-self-center max-w-[440px] w-full p-[45px] [&_h2]:text-[28px] [&_>_p:not(.eyebrow)]:text-[12px] [&_>_p:not(.eyebrow)]:mt-2.5 [&_form]:grid [&_form]:gap-[22px] [&_form]:mt-[30px] [&_label]:text-[12px] mobile:py-8 mobile:px-[25px] mobile:m-auto">
-        <div className="text-brand font-serif text-[35px] mb-10 [&_>_span]:font-sans [&_>_span]:text-[20px] [&_>_span]:ml-1 mobile:hidden">
-          N<span>↗</span>
-        </div>
-        <p className="eyebrow text-[10px] tracking-[1.8px] font-bold text-[#738293] mb-3.5">
-          ACADEMIC DIARY
-        </p>
+    <main className="min-h-screen bg-canvas">
+      <AppHeader variant="login" />
+      <div className="login-content flex min-h-[calc(100vh-80px)] justify-center px-6 pb-10 mobile:min-h-[calc(100vh-76px)] mobile:px-4">
+        <div className="login-card-grid grid h-fit w-full max-w-[900px] overflow-hidden rounded-[11px] border border-line bg-white shadow-[0_3px_12px_#152e4304]">
+        <section className="flex flex-col justify-center bg-[var(--waikato-light)] px-10 py-12 compact:px-8 mobile:px-6 mobile:py-8">
+          <p className="eyebrow text-[12px] font-bold tracking-[1.8px] text-ink">ACADEMIC DIARY</p>
+          <h1 className="mt-1 text-ink">Kei Hea a Nic?</h1>
+          <p className="mt-1 font-serif text-[22px] text-muted">Where is Nic?</p>
+          <div className="my-6 h-[3px] w-10 rounded-full bg-brand" />
+          <p className="max-w-[340px] text-[14px] text-ink">Keep your availability, weekly diary and contact details in one place.</p>
+        </section>
+        <section className="w-full p-10 compact:p-8 mobile:p-6">
         <h2>{register ? "Create your account" : "Welcome back"}</h2>
-        <p>
+        <p className="mt-1 text-[12px]">
           {register
             ? "Set up your academic diary."
             : "Sign in to manage your office information."}
         </p>
-        <form onSubmit={submit}>
+        <form className="mt-6 grid gap-[22px] [&_label]:text-[12px]" onSubmit={submit}>
           {register && (
             <label>
               Your name
               <input
+                className="auth-input"
                 required
                 name="name"
                 type="text"
@@ -98,6 +87,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           <label>
             Email address
             <input
+              className="auth-input"
               required
               name="email"
               type="email"
@@ -108,6 +98,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           <label>
             Password
             <input
+              className="auth-input"
               required
               name="password"
               type="password"
@@ -121,13 +112,13 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           {error && (
             <p
               role="alert"
-              className="error my-4 mx-0 py-3 px-[15px] rounded-[7px] text-[12px] bg-[#eaf1f5] text-[#38566e] [&.success]:bg-[#ecf6f0] [&.success]:text-[#186e4b] [&.error]:bg-[#fff0ed] [&.error]:text-[#a43729]"
+              className="error my-4 mx-0 py-3 px-[15px] rounded-[7px] text-[12px] bg-[#fff0ed] text-[#a43729]"
             >
               {error}
             </p>
           )}
           <button
-            className="primary w-full inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-[transparent] whitespace-nowrap bg-brand text-white shadow-[0_3px_7px_#08766015] [&:hover]:bg-[#065e4d]"
+            className="primary w-full inline-flex items-center justify-center gap-[22px] min-h-[42px] rounded-[7px] py-2.5 px-[18px] text-[13px] font-semibold border border-transparent whitespace-nowrap bg-brand text-white hover:brightness-90"
             disabled={busy}
           >
             {busy ? "Please wait…" : register ? "Create account" : "Sign in"}{" "}
@@ -140,7 +131,9 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             {register ? "Sign in" : "Create an account"}
           </Link>
         </p>
-      </section>
+        </section>
+        </div>
+      </div>
     </main>
   );
 }

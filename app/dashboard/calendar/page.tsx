@@ -5,6 +5,7 @@ import { api, errorText } from "@/lib/client-api";
 import { formatTime, localToISO, oneHourLaterLocal, ZONE } from "@/lib/time";
 import { statusPresentation } from "@/lib/status-resolution";
 import { DateTime24Field } from "@/components/DateTime24Field";
+import { StatusIcon } from "@/components/StatusIcon";
 import {
   Notice,
   PageHeading,
@@ -25,10 +26,10 @@ type Event = {
 type EventScope = "this" | "following" | "all";
 const weekDays = [["MO", "Mon"], ["TU", "Tue"], ["WE", "Wed"], ["TH", "Thu"], ["FR", "Fri"], ["SA", "Sat"], ["SU", "Sun"]] as const;
 const eventStatuses = [
-  ["AVAILABLE", "Available", "Happy to be interrupted", "✓", "var(--status-available)", "var(--status-available-tint)"],
-  ["IN_A_MEETING", "In a meeting", "Please come back later", "−", "var(--status-meeting)", "var(--status-meeting-tint)"],
-  ["TEACHING", "Teaching", "In class or facilitating", "✎", "var(--status-teaching)", "#eeeeff"],
-  ["OUT_OF_OFFICE", "Out of office", "Away from my desk", "◷", "var(--status-away)", "var(--status-away-tint)"],
+  ["AVAILABLE", "var(--status-available)", "var(--status-available-tint)"],
+  ["IN_A_MEETING", "var(--status-meeting)", "var(--status-meeting-tint)"],
+  ["TEACHING", "var(--status-teaching)", "#eeeeff"],
+  ["OUT_OF_OFFICE", "var(--status-away)", "var(--status-away-tint)"],
 ] as const;
 const localDateTime = (value: string) =>
   DateTime.fromISO(value).setZone(ZONE).toFormat("yyyy-MM-dd'T'HH:mm");
@@ -370,7 +371,7 @@ export default function CalendarPage() {
               </span>
               <input type="hidden" name="status" value={eventStatus} />
               <span className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {eventStatuses.map(([value, _label, _hint, _icon, color, tint]) => {
+                {eventStatuses.map(([value, color, tint]) => {
                   const { label, tagline: hint } = statusPresentation[value];
                   const selected = eventStatus === value;
                   return (
@@ -383,12 +384,7 @@ export default function CalendarPage() {
                     style={selected ? { borderColor: color, backgroundColor: tint, boxShadow: `0 0 0 2px ${color}33` } : undefined}
                   >
                     <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full" style={{ color, backgroundColor: tint }}>
-                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-                        {value === "AVAILABLE" && <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16.5 9" /></>}
-                        {value === "IN_A_MEETING" && <><circle cx="12" cy="12" r="9" /><path d="M8 12h8" /></>}
-                        {value === "TEACHING" && <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z" /><path d="M4 5.5v13A2.5 2.5 0 0 1 6.5 16H20M8 7h8" /></>}
-                        {value === "OUT_OF_OFFICE" && <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>}
-                      </svg>
+                      <StatusIcon status={value} className="h-6 w-6" />
                     </span>
                     <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
                       <span className="block text-[13px] font-bold leading-tight text-ink">{label}</span>
@@ -486,7 +482,7 @@ export default function CalendarPage() {
                           <small className="block min-w-0 text-[clamp(9px,2vw,13px)] leading-snug font-semibold [overflow-wrap:anywhere]">
                             {e.source === "ICS_IMPORT"
                               ? "Imported"
-                              : "Manual event"} · {eventStatuses.find(([value]) => value === e.status)?.[1] ?? "In a meeting"}
+                              : "Manual event"} · {statusPresentation[e.status].label}
                           </small>
                           <button
                             type="button"

@@ -61,7 +61,7 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .connection-icon { font-size: 6rem; color: var(--accent); animation: spin 2s linear infinite; }
 #display-shell { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
 .display-header { flex-shrink: 0; min-height: var(--header-height); padding: clamp(.8rem, 2vw, 2rem) clamp(1rem, 3vw, 3rem); display: flex; align-items: center; gap: clamp(.6rem, 1.5vw, 1.5rem); background: var(--surface); border-bottom: 2px solid var(--line); }
-.university-logo { width: clamp(11.475rem, 26.01vw, 22.95rem); height: clamp(3.4425rem, 6.12vw, 4.9725rem); margin-left: -1.17rem; object-fit: cover; object-position: center 50%; }
+.university-logo { width: clamp(11.475rem, 26.01vw, 22.95rem); height: auto; max-height: 4.1rem; margin-left: -1.17rem; padding: 3px 6px; border-radius: 3px; background: #fff; object-fit: contain; }
 .display-header > div { min-width: 0; flex: 1; }
 .display-header > .header-meta { position: relative; z-index: 1; flex: 0 0 auto; min-width: max-content; display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
 .display-header h1 { margin: .15rem 0 0; font-size: clamp(1.8rem, 4.5vw, 4.5rem); line-height: 1; }
@@ -157,7 +157,7 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
 @media (max-width: 850px) {
   .eyebrow { font-size: .68rem; }
   .display-header { min-height: 4.5rem; }
-  .university-logo { width: 9.18rem; height: 3.06rem; margin-left: -.9rem; }
+  .university-logo { width: 9.18rem; height: auto; max-height: 3.06rem; margin-left: -.9rem; }
   .display-header h1 { font-size: clamp(1.2rem, 5vw, 2rem); }
   .view { padding: .7rem; }
   .calendar-grid { grid-template-columns: 3rem repeat(5, minmax(var(--calendar-day-width), 1fr)); }
@@ -190,7 +190,7 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
 
   .display-header { height: var(--header-height); }
   .display-header { min-height: 0; padding: 6px 10px; gap: 12px; }
-  .university-logo { width: 157px; height: 43px; margin-left: -15px; }
+  .university-logo { width: 157px; height: auto; max-height: 43px; margin-left: -15px; }
   .display-header h1 { margin-top: 2px; font-size: 28px; line-height: .92; }
   .header-office { margin-top: 2px; font-size: 10px; }
   .display-header time { font-size: 18px; }

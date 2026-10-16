@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { clientAuth } from "@/lib/firebase";
 import { useAuth } from "@/components/auth-provider";
+import { AppHeader } from "@/components/app-header";
 const links = [
   ["availability", "◉", "Availability"],
   ["calendar", "▦", "Calendar"],
@@ -46,28 +47,7 @@ export default function DashboardLayout({
       >
         Skip to content
       </a>
-      <header className="fixed inset-x-0 top-0 z-20 flex h-[65px] items-center border-b border-line bg-white mobile:px-[18px]">
-        <Link
-          className="flex min-w-0 items-center rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand mobile:gap-3"
-          href="/dashboard/availability"
-        >
-          <span className="flex w-[254px] shrink-0 items-center justify-start pl-[18px] compact:w-[222px] compact:pl-2 mobile:w-auto mobile:pl-0">
-            <img
-              src="/logos/waikato_university.jpeg"
-              alt="University of Waikato"
-              className="h-auto max-h-[55px] w-auto max-w-[185px] object-contain mobile:max-h-[52px] mobile:max-w-[125px]"
-            />
-          </span>
-          <div className="min-w-0 border-l border-line pl-9 compact:pl-[25px] mobile:pl-3">
-            <span className="block text-[22px] font-bold leading-tight text-navy mobile:text-[18px]">
-              Kei Hea a Nic?
-            </span>
-            <span className="block text-[11px] text-muted mobile:text-[9px]">
-              Academic diary & availability
-            </span>
-          </div>
-        </Link>
-      </header>
+      <AppHeader />
       <aside className="w-[254px] shrink-0 bg-navy text-[#ecf3f9] flex flex-col overflow-y-auto pt-[30px] pr-5 pb-0 pl-5 fixed [inset:65px_auto_0_0] compact:w-[222px] compact:pl-3.5 compact:pr-3.5 mobile:static mobile:w-full mobile:pt-[18px] mobile:pr-[18px] mobile:pb-2.5 mobile:pl-[18px] mobile:[&_nav]:grid mobile:[&_nav]:grid-cols-2 mobile:[&_nav]:gap-1 mobile:[&_nav_a]:text-[11px] mobile:[&_nav_a]:whitespace-nowrap mobile:[&_nav_a]:py-2 mobile:[&_nav_a]:px-2.5 mobile:[&_nav_a]:gap-[7px] mobile:[&_nav_a_>_span]:text-[16px] mobile:[&_nav_i]:hidden">
         <p className="mt-0 mr-3 mb-3 ml-3 text-[9px] tracking-[1.9px] text-[#7e96ac] mobile:hidden">
           YOUR WORKSPACE

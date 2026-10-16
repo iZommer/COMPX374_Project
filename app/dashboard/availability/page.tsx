@@ -6,6 +6,7 @@ import { api, errorText } from "@/lib/client-api";
 import { clientAuth } from "@/lib/firebase";
 import { localInput, localToISO } from "@/lib/time";
 import { DateTime24Field } from "@/components/DateTime24Field";
+import { StatusIcon, type StatusIconName } from "@/components/StatusIcon";
 import {
   Notice,
   PageHeading,
@@ -17,28 +18,24 @@ const statuses = [
     id: "AVAILABLE",
     label: "Available",
     hint: "Happy to be interrupted",
-    icon: "✓",
     color: "[--status:var(--status-available)] [--tint:var(--status-available-tint)] [--pale:#f0f8f3]",
   },
   {
     id: "IN_A_MEETING",
     label: "In a meeting",
     hint: "Please come back later",
-    icon: "−",
     color: "[--status:var(--status-meeting)] [--tint:var(--status-meeting-tint)] [--pale:#fff5f3]",
   },
   {
     id: "TEACHING",
     label: "Teaching",
     hint: "In class or facilitating",
-    icon: "♧",
     color: "[--status:var(--status-teaching)] [--tint:#eeeeff] [--pale:#f6f6ff]",
   },
   {
     id: "OUT_OF_OFFICE",
     label: "Out of office",
     hint: "Away from my desk",
-    icon: "◷",
     color: "[--status:var(--status-away)] [--tint:var(--status-away-tint)] [--pale:#f4f6f8]",
   },
 ];
@@ -198,7 +195,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-[var(--tint)] text-[23px] text-[var(--status)]" aria-hidden="true">
-              {effectivePresentation.icon}
+              <StatusIcon status={effectivePresentation.id as StatusIconName} className="h-6 w-6" />
             </span>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[1.4px] text-muted">Status shown right now</p>
@@ -251,7 +248,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                     className="status-icon inline-flex items-center justify-center w-[39px] h-[39px] rounded-full text-[23px] text-[var(--status)] bg-[var(--tint)] shrink-0"
                     aria-hidden="true"
                   >
-                    {s.icon}
+                    <StatusIcon status={s.id as StatusIconName} className="h-6 w-6" />
                   </span>
                   <strong>{s.label}</strong>
                   <span>{s.hint}</span>
@@ -371,7 +368,7 @@ function AvailabilityForm({ initial, onSaved }: { initial: Availability; onSaved
                 className="status-icon inline-flex items-center justify-center w-[39px] h-[39px] rounded-full text-[23px] text-[var(--status)] bg-[var(--tint)] shrink-0"
                 aria-hidden="true"
               >
-                {previewStatus.icon}
+                <StatusIcon status={previewStatus.id as StatusIconName} className="h-6 w-6" />
               </span>
               <div>
                 <strong>{previewStatus.label}</strong>
