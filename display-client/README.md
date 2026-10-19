@@ -1,116 +1,75 @@
 # Digital Office Display
 
-The Raspberry Pi display client for **Kei Hea a Nic? Where is Nic?** It is deliberately isolated from the Academic Web Application and Diary Server in the parent repository. The display reads the existing `/api/display/{apiKey}/latest` endpoint and never writes to the Diary Server.
+Raspberry Pi kiosk client for [Kei Hea a Nic? — Where is Nic?](../README.md). The web application and its API live at the repository root. This client reads the web app's `/api/display/<key>/latest` endpoint and never changes server data.
 
-## Architecture
+## Requirements
 
-The Node 20/Express process binds only to `127.0.0.1`. It polls the Diary Server over HTTPS, validates the response, writes the last good response atomically to disk, and pushes changed state to Chromium with Server-Sent Events. Chromium never receives the saved API key and only communicates with localhost.
-
-```text
-Diary Server ◄── HTTPS GET ── Express poller ── atomic config/cache JSON
-                                      │
-                                      └── local JSON API + SSE ── Chromium kiosk
-```
-
-The frontend is Vite with vanilla TypeScript and plain CSS. All three visitor views remain mounted, so switching is immediate. QR codes are generated locally from vCard 3.0 data and require no internet connection.
-
-## Hardware and OS
-
-- Raspberry Pi 3 or newer; Pi 4/5 recommended
+- Raspberry Pi 3 or newer (Pi 4 or 5 recommended)
 - Raspberry Pi OS Bookworm Desktop, 32-bit or 64-bit
-- Touchscreen at 800×480 or greater
-- Network access to the production Diary Server
-- Node.js 20 LTS (the installer adds it when necessary)
 - Chromium and a graphical desktop session
+- Touchscreen, 800×480 or larger
+- Network access to the deployed Diary Server
+- Node.js 20 LTS (the installer installs it if needed)
 
-The responsive layout targets 800×480, 1024×600, 1280×720, and 1920×1080 in landscape and portrait. Test the exact panel and browser scaling before mounting it.
+The responsive interface targets 800×480, 1024×600, 1280×720, and 1920×1080, in both orientations. Check the actual screen and browser scaling before mounting the display.
 
 ## Local development
 
-```bash
+From the repository root:
+
+```sh
 cd display-client
-cp .env.example .env
-npm install
+npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. Vite proxies `/local/*` to Express on port 3000.
-
-To develop without the deployed server, start the mock in a second terminal:
-
-```bash
-npm run mock
-```
-
-Pair with `http://127.0.0.1:4100` and key `test-key`. Plain HTTP is accepted only for loopback development. Simulator controls include:
-
-```bash
-curl -X POST http://127.0.0.1:4100/mock/status/IN_A_MEETING
-curl -X POST http://127.0.0.1:4100/mock/mode/empty-calendar
-curl -X POST http://127.0.0.1:4100/mock/mode/no-contact
-curl -X POST http://127.0.0.1:4100/mock/mode/slow
-curl -X POST http://127.0.0.1:4100/mock/mode/error
-```
-
-Use a key other than `test-key` to simulate a 404/revoked key. Return to normal with `POST /mock/mode/normal`.
+The Vite interface is at `http://127.0.0.1:5173`; it proxies local API calls to the Express server on port 3000. To use the simulator instead of a deployed web app, start `npm run mock` in another terminal, then pair the client with `http://127.0.0.1:4100` and key `test-key`. HTTP is accepted only for loopback development.
 
 ## Configuration and pairing
 
-Copy `.env.example` to `.env` for development or edit `/etc/where-is-nic.env` on the Pi. Never commit a real display key. Environment values provide defaults. Values entered during setup are stored in `DATA_DIR/config.json`.
+The Pi configuration example is stored at [`../env_examples/display_client_env_example.txt`](../env_examples/display_client_env_example.txt). For local development, copy it into `display-client/.env`. For a system installation, the installer creates `/etc/where-is-nic.env` from this example; edit that file as root if you need to set defaults. Leave `DISPLAY_API_KEY` empty to pair on the screen. The application removes a trailing slash from `DIARY_SERVER_URL` automatically.
 
-Obtain the API key from the Academic Web Application at `/dashboard/display`. On first boot:
+Configuration variables set defaults for the server URL, display key, polling and timeout, data directory, timezone, idle return, stale-data warning, pixel shifting, and overnight dimming. Pairing and preferences saved by the application take precedence over environment defaults. The stored key and cached data live under `DATA_DIR`; do not share or commit them.
 
-1. Enter the production Diary Server base URL without a trailing slash.
-2. Enter the academic's display API key using the Pi's physical keyboard.
-3. Tap **Validate and pair**. The server performs a real request before saving anything.
+To pair:
 
-The production URL must be publicly reachable by the Pi. Disable Vercel Deployment Protection for the production route or configure the production deployment so an unauthenticated GET returns JSON rather than a login page.
+1. Deploy the web application as described in the [root README](../README.md).
+2. In its dashboard, open the Display page and copy the display key.
+3. On first boot, enter the deployed HTTPS server URL and key with the Pi's physical keyboard, then choose **Validate and pair**. The client validates the key before saving it.
 
-To open protected settings, press and hold the invisible top-left corner for five seconds. This panel controls text size, high contrast, pixel shifting, idle return, and re-pairing. Re-pairing removes the stored key and returns to setup. The local reset route is bound to loopback and is not reachable from another device.
+The server must be reachable from the Pi, and Vercel Deployment Protection must allow the key-authenticated production display endpoint to return JSON without a Vercel login. Display preferences set in the web app are applied at the next successful poll; local preferences serve as defaults and fallback settings.
 
-Display preferences saved in the Academic Web Application win over environment and hidden-menu values. The Pi applies server changes on its next successful poll (normally within 10 seconds). The local menu remains a fallback when the server payload has no settings; local changes are retained on the Pi but are overridden when server preferences arrive. This keeps local control available during setup while making the server the source of truth for paired displays.
+To open the hidden settings panel, press and hold the top-left corner for five seconds. It includes text size, contrast, pixel shifting, idle return, and re-pairing. Re-pairing removes the saved key and returns to setup.
 
-## Build and test
+## Install on Raspberry Pi
 
-```bash
-npm test
-npm run build
-npm start
-```
+Clone the repository on the Pi, enter `display-client`, and run:
 
-The production server is at `http://127.0.0.1:3000`. Tests cover payload validation, polling/non-overlap/backoff, atomic cache behavior and corrupt recovery, vCards, overlapping and overnight calendar events, the NZ DST transition, and staleness severity.
-
-For bundle size, inspect the summary from `npm run build`; the application target is below 300 KB gzip excluding fonts. The client owns one clock interval, one pixel-shift interval, one idle timer, and one SSE connection. SSE listeners and server keepalive timers are released on disconnect; the poller schedules its next timer only after the current request completes. This prevents timer, request, and connection growth during long-running operation.
-
-## Raspberry Pi installation
-
-Clone the repository on the Pi, enter this directory, and run:
-
-```bash
+```sh
 sudo bash ./deploy/install.sh
 ```
 
-The installer builds into `/opt/where-is-nic`, creates the restricted `where-is-nic` service user, creates `/var/lib/where-is-nic`, installs the two systemd units, and enables the server. Review `/etc/where-is-nic.env`, then reboot:
+The installer builds the client, installs it under `/opt/where-is-nic`, creates the `where-is-nic` service account and `/var/lib/where-is-nic` data directory, installs systemd units, and enables the server service. It enables the kiosk service; reboot to start it in the desktop session.
 
-```bash
+```sh
 sudo nano /etc/where-is-nic.env
 sudo reboot
 ```
 
-The kiosk service uses the user who invoked `sudo`. If the graphical desktop belongs to another account, replace `User` and `XAUTHORITY` in `/etc/systemd/system/where-is-nic-kiosk.service`, run `sudo systemctl daemon-reload`, and enable it again.
+The kiosk service uses the account that invoked `sudo`. If the desktop belongs to a different account, update `User` and `XAUTHORITY` in `/etc/systemd/system/where-is-nic-kiosk.service`, then run `sudo systemctl daemon-reload` and enable the kiosk service again.
 
 Useful commands:
 
-```bash
+```sh
 systemctl status where-is-nic
 journalctl -u where-is-nic -f
 systemctl status where-is-nic-kiosk
 curl http://127.0.0.1:3000/local/state
 ```
 
-### Updating
+To update, pull the repository and rerun the installer:
 
-```bash
+```sh
 git pull
 cd display-client
 sudo bash ./deploy/install.sh
@@ -119,75 +78,30 @@ sudo systemctl restart where-is-nic where-is-nic-kiosk
 
 The installer preserves `/etc/where-is-nic.env` and data under `/var/lib/where-is-nic`.
 
-## Offline and time behavior
+## Network outages and time
 
-Every valid response is written with `lastSuccessAt`. During an outage the display immediately keeps the cached information and shows a calm out-of-date banner. Data older than `STALE_AFTER_HOURS` gets a stronger warning. A cold offline boot renders cache before retrying; without cache it displays “Waiting for connection…”. Success clears the warning without a reload.
+The client polls the Diary Server (10 seconds by default, at most every 15 seconds), validates the response, and atomically saves the last successful payload. During outages it continues showing cached data with an out-of-date warning; older data gets a stronger warning. A cold offline boot uses the cache if available. Without a cache, the display shows a waiting state. It refreshes automatically when the connection returns.
 
-Times use `TIMEZONE` (`Pacific/Auckland` by default), including daylight-saving transitions. If the Pi clock reports a year before 2024, a warning is shown and the calendar avoids claiming that its current-time indication is reliable. Keep system time enabled:
+Times use the configured IANA timezone, defaulting to `Pacific/Auckland`, including daylight-saving transitions. Keep network time enabled on the Pi:
 
-```bash
+```sh
 timedatectl status
 sudo timedatectl set-ntp true
 ```
 
 ## Troubleshooting
 
-### No network
+- **No network or stale data:** Check Wi-Fi/Ethernet and DNS, then request the Diary Server URL from the Pi. A Vercel HTML login page indicates Deployment Protection is intercepting the endpoint.
+- **Wrong time:** Check `timedatectl`, enable NTP, and verify `TIMEZONE`. A Pi without a real-time clock may have an incorrect time before network time syncs.
+- **Blank screen:** Check both systemd services and their logs. Confirm `curl http://127.0.0.1:3000/local/state` returns JSON and Chromium can open the local page. The build should have produced `dist/index.html`.
+- **Touchscreen calibration:** Start with Raspberry Pi OS Screen Configuration. For X11 panels, inspect `xinput list` and use the panel manufacturer's calibration details. Verify rotation in the desktop and Chromium.
 
-Confirm Wi-Fi/Ethernet and DNS, then `curl` the Diary Server endpoint from the Pi. Cached data should remain visible. A Vercel HTML login response means Deployment Protection is intercepting the endpoint.
+## Build and tests
 
-### Wrong time
+```sh
+npm test
+npm run build
+npm start
+```
 
-Run `timedatectl`, enable NTP, and verify `TIMEZONE`. Raspberry Pis without a real-time clock can briefly have a wrong clock before networking synchronizes it.
-
-### Blank screen
-
-Check both services and `journalctl`. Confirm `curl http://127.0.0.1:3000/local/state` returns JSON and Chromium can open that address. Verify the build produced `dist/index.html`.
-
-### Touchscreen calibration
-
-Use Raspberry Pi OS Screen Configuration first. For X11 panels, inspect `xinput list` and apply the vendor's calibration matrix. Re-test rotation in both desktop and Chromium; avoid hard-coding pixel coordinates in the app.
-
-## Manual acceptance checklist
-
-- [ ] First boot without a stored key opens pairing and accepts input from the Pi's physical keyboard.
-- [ ] A bad/revoked key shows a specific message and is not saved.
-- [ ] Unplug the network: the banner appears while last-good data remains on all views.
-- [ ] Reconnect the network: the banner clears automatically within one successful retry.
-- [ ] Change status in the web app: the door display changes within 15 seconds during normal connectivity.
-- [ ] Reboot the Pi: it boots directly to Current Status without interaction.
-- [ ] Leave Calendar or Contact idle for 60 seconds: it returns to Current Status.
-- [ ] Swipe and tab navigation switch instantly, with 48 px minimum touch targets.
-- [ ] Empty calendar, overlaps, overnight events, no contact, and QR scanning behave correctly.
-- [ ] Hold the top-left corner for five seconds: settings opens; a casual tap does nothing.
-- [ ] Check 800×480, 1024×600, 1280×720, and 1920×1080 in landscape and portrait.
-- [ ] Verify high contrast, all text sizes, reduced motion, keyboard focus, and screen-reader labels.
-- [ ] Leave running for 72 hours and confirm stable process memory, one SSE connection, and no growing timers/listeners.
-
-## Requirements traceability
-
-| Requirement | Implementation | SRS §4 / NFR addressed |
-|---|---|---|
-| FR-09 client side | Read-only validated `/api/display/{apiKey}/latest` polling | Security, interoperability, reliability |
-| FR-10 Current Status | Large labelled status, distinct symbol/shape and colour-safe palette, return time/message | 4.1 performance, 4.8 accessibility |
-| FR-11 Weekly Calendar | Monday–Friday grid, now/today styling, overlaps, overnight splitting, DST-aware wall time | 4.1, 4.4, 4.8 |
-| FR-12 Contact Information | Email, phone, office with empty-state handling | 4.4, 4.8 |
-| FR-13 QR contact sharing | Offline vCard 3.0 QR with quiet zone and high contrast | 4.5 standard format, 4.7 offline |
-| FR-14 Display navigation | Persistent tabs, horizontal swipe, idle return, views kept mounted | 4.1 response time, 4.8 touch usability |
-| FR-15 Pairing/configuration | First-run setup, real validation, physical-keyboard input, persistent association, protected re-pair | 4.6 security, reliability |
-| Polling freshness | 10 s default, 15 s normal maximum, request timeout, no overlap, capped backoff, SSE diffing | 4.1 latency, 4.3 resources, 4.7 reliability |
-| Offline cache | Atomic last-good JSON, cold-start cache, corruption tolerance, two warning levels | 4.7 degraded operation |
-| Local boundary | Loopback-only Express, API key omitted from public state/DOM after pairing, HTTPS production URL | 4.6 security |
-| Adaptive kiosk UI | CSS Grid, `clamp()`, rem/vw sizing, portrait rules, Chromium kiosk controls | 4.4 resolution adaptability |
-| Accessibility settings | Text scaling, high contrast, non-colour cues, semantic landmarks/ARIA, reduced motion | 4.8 accessibility |
-| Longevity | Optional minute pixel shift and configurable overnight dim schedule | 4.3 resource/longevity |
-| Time correctness | Configurable IANA timezone, NZ DST tests, implausible-clock warning | 4.7 reliability |
-| Process reliability | `Restart=always`, graceful SIGTERM/SIGINT, atomic rename, request abort | 4.7 reliability |
-
-## Security notes
-
-- The Express listener is hard-coded to `127.0.0.1`.
-- Production Diary Server URLs must use HTTPS; HTTP is accepted only for loopback mock development.
-- The server never logs the API key, never returns it from `/local/state`, and never embeds it in built frontend assets.
-- The display exposes no academic account, management, booking, or Diary Server write operation.
-- `.env`, the data directory, caches, and installed environment file are excluded from source control or created with restricted permissions.
+The production Express server binds to `127.0.0.1:3000`. Tests cover payload validation, polling/backoff, cache recovery, contact QR data, calendar rendering, and time-zone behavior. The kiosk polls the remote service; Chromium receives updates from the local server over Server-Sent Events and never receives the saved API key.

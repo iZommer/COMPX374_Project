@@ -1,0 +1,16 @@
+# Neon pooled runtime connection; include sslmode=require
+# Keep Neon credentials secure: never commit real values or expose them to client-side code
+DATABASE_URL="postgresql://USER:PASSWORD@HOST-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require"
+# Neon direct (non-pooled) connection for migrations; include sslmode=require
+DIRECT_URL="postgresql://USER:PASSWORD@HOST.REGION.aws.neon.tech/DBNAME?sslmode=require"
+# Firebase Admin: service-account JSON "project_id"
+FIREBASE_PROJECT_ID=""
+# Firebase Admin: service-account JSON "client_email"
+FIREBASE_CLIENT_EMAIL=""
+# Firebase Admin: service-account JSON "private_key" (not "private_key_id"); keep escaped \n newlines
+FIREBASE_PRIVATE_KEY=""
+# Firebase Web app config (public values)
+NEXT_PUBLIC_FIREBASE_API_KEY=""
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=""
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=""
+NEXT_PUBLIC_FIREBASE_APP_ID=""

@@ -39,7 +39,7 @@ install -m 0644 "$INSTALL_DIR/deploy/where-is-nic.service" /etc/systemd/system/w
 sed "s/@KIOSK_USER@/${KIOSK_USER}/g" "$INSTALL_DIR/deploy/where-is-nic-kiosk.service" > /etc/systemd/system/where-is-nic-kiosk.service
 
 if [[ ! -f /etc/where-is-nic.env ]]; then
-  install -m 0600 "$INSTALL_DIR/.env.example" /etc/where-is-nic.env
+  install -m 0600 "$SOURCE_DIR/../env_examples/display_client_env_example.txt" /etc/where-is-nic.env
 fi
 
 systemctl daemon-reload
