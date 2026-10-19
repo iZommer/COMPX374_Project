@@ -28,7 +28,7 @@ const weekDays = [["MO", "Mon"], ["TU", "Tue"], ["WE", "Wed"], ["TH", "Thu"], ["
 const eventStatuses = [
   ["AVAILABLE", "var(--status-available)", "var(--status-available-tint)"],
   ["IN_A_MEETING", "var(--status-meeting)", "var(--status-meeting-tint)"],
-  ["TEACHING", "var(--status-teaching)", "#eeeeff"],
+  ["TEACHING", "var(--status-teaching)", "var(--status-teaching-tint)"],
   ["OUT_OF_OFFICE", "var(--status-away)", "var(--status-away-tint)"],
 ] as const;
 const localDateTime = (value: string) =>
@@ -448,7 +448,7 @@ export default function CalendarPage() {
                         <article
                           className={`border-l-[3px] border-l-[#7195b2] bg-[#edf3f8] py-2.5 px-2 rounded-[4px] mt-[5px] mr-0 mb-2.5 ml-0 [overflow-wrap:anywhere] [&.imported]:border-[#63a28d] [&.imported]:bg-[#eaf5ef] [&_>_span]:text-[9px] [&_>_span]:text-[#5e7c8c] [&_>_span]:block [&_h3]:text-[11px] [&_h3]:leading-[1.6] [&_h3]:mt-[7px] [&_h3]:mr-0 [&_h3]:mb-3 [&_>_small]:text-[12px] [&_>_small]:font-semibold [&_>_small]:text-[#536b76] mobile:mt-0 ${e.source === "ICS_IMPORT" ? "imported" : ""} ${selectedEvents[e.id] ? "ring-2 ring-[#08766055]" : ""}`}
                           key={e.id}
-                          style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "#eeeeff" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "var(--status-meeting)", backgroundColor: "var(--status-meeting-tint)" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "var(--status-away)", backgroundColor: "var(--status-away-tint)" } : { borderLeftColor: "var(--status-available)", backgroundColor: "var(--status-available-tint)" }}
+                          style={e.status === "TEACHING" ? { borderLeftColor: "var(--status-teaching)", backgroundColor: "var(--status-teaching-tint)" } : e.status === "IN_A_MEETING" ? { borderLeftColor: "var(--status-meeting)", backgroundColor: "var(--status-meeting-tint)" } : e.status === "OUT_OF_OFFICE" ? { borderLeftColor: "var(--status-away)", backgroundColor: "var(--status-away-tint)" } : { borderLeftColor: "var(--status-available)", backgroundColor: "var(--status-available-tint)" }}
                         >
                           <div className="mb-1 flex items-start justify-between gap-1">
                           <span className="block text-[9px] text-[#5e7c8c]">

@@ -27,7 +27,7 @@ const statuses = [
   {
     id: "TEACHING",
     label: "Teaching",
-    color: "[--status:var(--status-teaching)] [--tint:#eeeeff] [--pale:#f6f6ff]",
+    color: "[--status:var(--status-teaching)] [--tint:var(--status-teaching-tint)] [--pale:#f4f4f9]",
   },
   {
     id: "OUT_OF_OFFICE",
