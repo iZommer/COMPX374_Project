@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { adminAuth } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { HttpError } from "@/lib/http";
-export const newKey = () => randomBytes(32).toString("hex");
+export const newKey = () => randomBytes(16).toString("hex");
 export async function academicFor(request: Request) {
   const match = request.headers.get("authorization")?.match(/^Bearer (\S+)$/);
   if (!match) throw new HttpError(401, "Please sign in to continue.");
