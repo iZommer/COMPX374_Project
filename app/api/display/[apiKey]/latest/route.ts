@@ -11,7 +11,7 @@ export async function GET(
 ) {
   return route(async () => {
     const { apiKey } = await context.params;
-    if (!/^[a-f0-9]{64}$/.test(apiKey))
+    if (!/^(?:[a-f0-9]{64}|[A-Za-z0-9_-]{16})$/.test(apiKey))
       throw new HttpError(404, "Display key not found.");
     const localToday = DateTime.now().setZone(ZONE);
     const monday = localToday.startOf("week").plus({ weeks: localToday.weekday > 5 ? 1 : 0 });
