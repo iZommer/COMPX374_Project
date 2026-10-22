@@ -98,7 +98,11 @@ export class Poller {
   }
 
   private async run(): Promise<void> {
-    if (this.stopped || this.running) return;
+    if (this.stopped) return;
+    if (this.running) {
+      this.schedule(250);
+      return;
+    }
     const credentials = this.options.getCredentials();
     if (!credentials) return;
     this.running = true;

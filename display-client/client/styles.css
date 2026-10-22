@@ -74,7 +74,12 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 #calendar-view { display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; overflow: hidden; touch-action: pan-x pan-y; }
 @keyframes view-in { from { opacity: .5; transform: translateY(.25rem); } }
 #status-view { display: grid; grid-template-rows: minmax(0, 1fr); padding-bottom: clamp(.65rem, 1.2vw, 1.1rem); grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: clamp(.6rem, 1.5vw, 1.5rem); overflow: hidden; }
-.status-card { min-height: 0; min-width: 0; height: 100%; border-radius: clamp(1rem, 3vw, 2.5rem); display: grid; align-content: safe center; justify-items: center; padding: clamp(1rem, 2vw, 2rem); overflow-y: auto; overflow-wrap: anywhere; text-align: center; border: clamp(.45rem, 1vw, .8rem) solid var(--status-color, #52667a); background: var(--status-color, #52667a); color: #fff; }
+.status-card { position: relative; min-height: 0; min-width: 0; height: 100%; border-radius: clamp(1rem, 3vw, 2.5rem); display: grid; align-content: safe center; justify-items: center; padding: clamp(1rem, 2vw, 2rem); padding-bottom: clamp(5rem, 12vh, 7rem); overflow-y: auto; overflow-wrap: anywhere; text-align: center; border: clamp(.45rem, 1vw, .8rem) solid var(--status-color, #52667a); background: var(--status-color, #52667a); color: #fff; }
+.status-refresh { position: absolute; right: 0; bottom: 0; z-index: 1; min-width: 48px; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: .5rem; background: transparent; color: #fff; font-size: 1.15rem; opacity: .72; cursor: pointer; }
+.status-refresh:hover { background: transparent; opacity: 1; }
+.status-refresh span { font-size: 1.2em; line-height: 1; }
+.status-refresh:disabled { cursor: wait; opacity: .8; }
+.status-refresh.is-refreshing span { animation: spin .8s linear infinite; }
 .status-available { --status-color: var(--status-available); }
 .status-meeting { --status-color: var(--status-meeting); }
 .status-teaching { --status-color: var(--status-teaching); }
@@ -85,7 +90,9 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .today-heading { flex-shrink: 0; padding-bottom: .8rem; border-bottom: 1px solid var(--line); }
 .today-heading h2 { margin: .15rem 0; font-size: clamp(1.5rem, 2.8vw, 2.5rem); }
 .today-heading > p:last-child { margin: 0; color: var(--muted); font-size: .9rem; }
-.today-events { min-height: 0; margin: 1rem 0 0; padding: 0; list-style: none; overflow-y: auto; overscroll-behavior: contain; }
+.today-events { min-height: 0; margin: 1rem 0 0; padding: 0; list-style: none; overflow-y: auto; overscroll-behavior-y: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: auto; scrollbar-color: transparent transparent; }
+.today-events::-webkit-scrollbar { width: 28px; }
+.today-events::-webkit-scrollbar-track, .today-events::-webkit-scrollbar-thumb { background: transparent; }
 .today-event { padding: .85rem; margin-bottom: .75rem; border-left: 3px solid var(--line); border-radius: .35rem; background: #f8faf9; overflow-wrap: anywhere; }
 .today-event.event-status-available { border-left-color: var(--status-available); background: var(--status-available-tint); }
 .today-event.event-status-in_a_meeting { border-left-color: var(--status-meeting); background: var(--status-meeting-tint); }
@@ -202,9 +209,11 @@ dialog form { display: grid; gap: 1.2rem; padding: 1.5rem; }
   /* Keep the two-thirds availability panel readable on the Pi touchscreen. */
   .status-card {
     padding: 14px;
+    padding-bottom: 72px;
     border-width: 6px;
     border-radius: 16px;
   }
+  .status-refresh { right: 0; bottom: 0; min-width: 48px; min-height: 48px; padding: 0; font-size: 1rem; }
   .status-label {
     margin: 0;
     font-size: clamp(52px, 8vw, 68px);

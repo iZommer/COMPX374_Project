@@ -463,6 +463,24 @@ function connectEvents(): void {
 }
 
 function wireInteractions(): void {
+  const refreshButton = $("#status-refresh") as HTMLButtonElement;
+  refreshButton.addEventListener("click", async () => {
+    refreshButton.disabled = true;
+    refreshButton.classList.add("is-refreshing");
+    refreshButton.setAttribute("aria-busy", "true");
+    try {
+      const response = await fetch("/local/refresh", { method: "POST" });
+      if (!response.ok) throw new Error("Refresh failed");
+      resetIdleTimer();
+    } catch {
+      refreshButton.setAttribute("aria-label", "Refresh failed. Retry status and schedule refresh");
+    } finally {
+      refreshButton.disabled = false;
+      refreshButton.classList.remove("is-refreshing");
+      refreshButton.removeAttribute("aria-busy");
+      window.setTimeout(() => refreshButton.setAttribute("aria-label", "Refresh status and today's schedule"), 3000);
+    }
+  });
   document.querySelectorAll<HTMLButtonElement>(".tab").forEach((button) =>
     button.addEventListener("click", () => showView(button.dataset.view as ViewName)),
   );

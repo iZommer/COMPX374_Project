@@ -27,7 +27,7 @@ The Vite interface is at `http://127.0.0.1:5173`; it proxies local API calls to 
 
 ## Configuration and pairing
 
-The Pi configuration example is stored at [`../env_examples/display_client_env_example.txt`](../env_examples/display_client_env_example.txt). For local development, copy it into `display-client/.env`. For a system installation, the installer creates `/etc/where-is-nic.env` from this example; edit that file as root if you need to set defaults. Leave `DISPLAY_API_KEY` empty to pair on the screen. The application removes a trailing slash from `DIARY_SERVER_URL` automatically.
+The Pi configuration example is stored at [`../env_examples/display_client_env_example.txt`](../env_examples/display_client_env_example.txt). For local development, copy it into `display-client/.env`. A system installation creates `/etc/where-is-nic.env` with `DATA_DIR=/var/lib/where-is-nic`; the installer preserves existing settings and data on updates. When run in a terminal, it offers to collect the Diary Server URL and display key. Leave either blank to enter it during first screen setup. The application removes a trailing slash from `DIARY_SERVER_URL` automatically.
 
 Configuration variables set defaults for the server URL, display key, polling and timeout, data directory, timezone, idle return, stale-data warning, pixel shifting, and overnight dimming. Pairing and preferences saved by the application take precedence over environment defaults. The stored key and cached data live under `DATA_DIR`; do not share or commit them.
 
@@ -35,7 +35,7 @@ To pair:
 
 1. Deploy the web application as described in the [root README](../README.md).
 2. In its dashboard, open the Display page and copy the display key.
-3. On first boot, enter the deployed HTTPS server URL and key with the Pi's physical keyboard, then choose **Validate and pair**. The client validates the key before saving it.
+3. If the installer did not receive the URL and key, enter them on first boot with the Pi's physical keyboard, then choose **Validate and pair**. The client validates the key before saving it. No file editing over SSH is needed.
 
 The server must be reachable from the Pi, and Vercel Deployment Protection must allow the key-authenticated production display endpoint to return JSON without a Vercel login. Display preferences set in the web app are applied at the next successful poll; local preferences serve as defaults and fallback settings.
 
@@ -43,27 +43,25 @@ To open the hidden settings panel, press and hold the top-left corner for five s
 
 ## Install on Raspberry Pi
 
-Clone the repository on the Pi, enter `display-client`, and run:
+Clone the repository on the Pi, enter `display-client`, and run once:
 
 ```sh
 sudo bash ./deploy/install.sh
 ```
 
-The installer builds the client, installs it under `/opt/where-is-nic`, creates the `where-is-nic` service account and `/var/lib/where-is-nic` data directory, installs systemd units, and enables the server service. It enables the kiosk service; reboot to start it in the desktop session.
+The installer installs Node.js and Chromium if needed, builds the production client under `/opt/where-is-nic`, creates its service account and persistent data directory, and enables the local server. It configures Raspberry Pi OS to boot into the desktop with automatic login for the account that ran `sudo`, disables display blanking, then adds the kiosk launcher to that user's desktop autostart. The launcher inherits the desktop's actual X11 or Wayland session, waits for the local server, and restarts Chromium if it exits. If the installer is run interactively, it asks for the Diary Server URL and display key; either can be left blank for touch-screen pairing.
 
 ```sh
-sudo nano /etc/where-is-nic.env
 sudo reboot
 ```
 
-The kiosk service uses the account that invoked `sudo`. If the desktop belongs to a different account, update `User` and `XAUTHORITY` in `/etc/systemd/system/where-is-nic-kiosk.service`, then run `sudo systemctl daemon-reload` and enable the kiosk service again.
+After reboot, the kiosk opens automatically. If pairing is still needed, the screen displays the setup form; enter the HTTPS Diary Server URL and the display key and select **Validate and pair**. The saved pairing and schedule cache survive reboots in `/var/lib/where-is-nic`.
 
 Useful commands:
 
 ```sh
 systemctl status where-is-nic
 journalctl -u where-is-nic -f
-systemctl status where-is-nic-kiosk
 curl http://127.0.0.1:3000/local/state
 ```
 
@@ -73,10 +71,11 @@ To update, pull the repository and rerun the installer:
 git pull
 cd display-client
 sudo bash ./deploy/install.sh
-sudo systemctl restart where-is-nic where-is-nic-kiosk
+sudo systemctl restart where-is-nic
+sudo reboot
 ```
 
-The installer preserves `/etc/where-is-nic.env` and data under `/var/lib/where-is-nic`.
+The installer preserves `/etc/where-is-nic.env`, user settings, and data under `/var/lib/where-is-nic`. The only required manual interaction after a blank-key install is pairing on the Pi's screen.
 
 ## Network outages and time
 

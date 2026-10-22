@@ -117,6 +117,11 @@ app.use((_request, response, next) => {
 
 app.get("/local/state", (_request, response) => response.json(publicState()));
 
+app.post("/local/refresh", (_request, response) => {
+  poller.restart();
+  response.sendStatus(202);
+});
+
 app.get("/local/events", (request, response) => {
   response.setHeader("Content-Type", "text/event-stream");
   response.setHeader("Cache-Control", "no-cache, no-transform");
