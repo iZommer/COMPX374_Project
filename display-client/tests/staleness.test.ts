@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/staleness.test.ts
+ *
+ * Purpose: Tests stale-data detection and time-based dimming behavior.
+ */
 import { expect, it } from "vitest";
 import { getStaleness } from "../shared/state.js";
 

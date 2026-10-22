@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/payload.test.ts
+ *
+ * Purpose: Tests validation of remote diary payloads and event fields.
+ */
 import { describe, expect, it } from "vitest";
 import { validateDiaryPayload } from "../shared/payload.js";
 import { validPayload } from "./fixtures.js";

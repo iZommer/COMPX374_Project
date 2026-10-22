@@ -1,3 +1,4 @@
+/** Public, key-authenticated read endpoint used by the kiosk poller. */
 import { db } from "@/lib/db";
 import { HttpError, json, route } from "@/lib/http";
 import { ZONE } from "@/lib/time";
@@ -5,6 +6,8 @@ import { DateTime } from "luxon";
 import { resolveStatus, statusPresentation } from "@/lib/status-resolution";
 import { expandSeries } from "@/lib/recurrence";
 export const dynamic = "force-dynamic";
+// The display key is the bearer credential for this endpoint; return only the visitor-facing payload.
+/** Returns current status, calendar, contact data, and display preferences for a valid key. */
 export async function GET(
   request: Request,
   context: { params: Promise<{ apiKey: string }> },

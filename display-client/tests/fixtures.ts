@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/fixtures.ts
+ *
+ * Purpose: Builds reusable valid and invalid diary payload fixtures for display-client tests.
+ */
 import type { DiaryPayload } from "../shared/payload.js";
 
 export const validPayload: DiaryPayload = {

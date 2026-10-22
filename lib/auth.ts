@@ -1,3 +1,8 @@
+/**
+ * lib/auth.ts
+ *
+ * Purpose: Verifies Firebase user identity and resolves the application account used by API routes.
+ */
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { adminAuth } from "@/lib/admin";

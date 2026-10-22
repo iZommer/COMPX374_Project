@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Purpose: Waits for the local display service and launches Chromium in kiosk mode.
 set -Eeuo pipefail
 
 log() { printf '[where-is-nic-kiosk] %s\n' "$*" >&2; }

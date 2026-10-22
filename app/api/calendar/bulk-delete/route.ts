@@ -1,7 +1,9 @@
+/** Authenticated bulk deletion API for ordinary events and recurring occurrences. */
 import { academicFor } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { body, HttpError, json, route } from "@/lib/http";
 
+/** Deletes 1–200 selected events/occurrences in a database transaction. */
 export const POST = route(async (req) => {
   const academic = await academicFor(req);
   const input = await body(req);

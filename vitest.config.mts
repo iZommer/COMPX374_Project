@@ -1,3 +1,8 @@
+/**
+ * vitest.config.mts
+ *
+ * Purpose: Configures root test aliases and server-only module resolution for Vitest.
+ */
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 export default defineConfig({

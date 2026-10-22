@@ -1,9 +1,11 @@
+/** Authenticated availability API; reads resolved status and saves user overrides. */
 import { academicFor } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { body, json, route } from "@/lib/http";
 import { availabilityInput } from "@/lib/validation";
 import { resolveStatus } from "@/lib/status-resolution";
 import { expandSeries } from "@/lib/recurrence";
+/** Returns saved availability together with its effective calendar/override status. */
 export const GET = route(async (req) => {
   const a = await academicFor(req);
   const now = new Date();
@@ -26,6 +28,7 @@ export const GET = route(async (req) => {
     activeEventTitle: currentEvent?.title ?? null,
   });
 });
+/** Validates and saves availability and optional temporary override fields. */
 export const PUT = route(async (req) => {
   const a = await academicFor(req);
   const data = availabilityInput.parse(await body(req));

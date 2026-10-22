@@ -1,3 +1,4 @@
+/** Authenticated calendar API, including recurrence-aware CRUD operations. */
 import { academicFor } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { body, HttpError, json, route } from "@/lib/http";
@@ -10,6 +11,7 @@ function occurrenceDate(value: string | undefined) {
   if (!value || !Number.isFinite(Date.parse(value))) throw new HttpError(400, "A valid occurrence start is required.");
   return new Date(value);
 }
+/** Returns expanded events for the requested local week (`?week=YYYY-MM-DD`). */
 export const GET = route(async (req) => {
   const a = await academicFor(req);
   const date = new URL(req.url).searchParams.get("week") || undefined;
@@ -30,6 +32,7 @@ export const GET = route(async (req) => {
   });
   return json(expandSeries(events, range.start, range.end));
 });
+/** Creates one validated manual event or recurring series. */
 export const POST = route(async (req) => {
   const a = await academicFor(req);
   const data = eventInput.parse(await body(req));
@@ -40,6 +43,7 @@ export const POST = route(async (req) => {
     201,
   );
 });
+/** Updates an event using `all`, `this`, or `following` recurrence scope. */
 export const PUT = route(async (req) => {
   const a = await academicFor(req);
   const input = await body(req);
@@ -96,6 +100,7 @@ export const PUT = route(async (req) => {
   if (!result.count) throw new HttpError(404, "Calendar event not found.");
   return json({ ok: true });
 });
+/** Deletes a whole event/series or a selected recurring occurrence range. */
 export const DELETE = route(async (req) => {
   const a = await academicFor(req);
   const id = new URL(req.url).searchParams.get("id");

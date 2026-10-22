@@ -1,3 +1,8 @@
+/**
+ * display-client/server/poller.ts
+ *
+ * Purpose: Fetches the latest remote diary payload and schedules bounded retries for the display service.
+ */
 import { validateDiaryPayload, type DiaryPayload } from "../shared/payload.js";
 
 export interface Credentials {
@@ -52,6 +57,7 @@ export async function fetchLatest(
 }
 
 export function backoffDelay(failureCount: number, normalIntervalMs: number): number {
+  // Slow repeated retries during outages while returning to the configured cadence after success.
   if (failureCount <= 1) return normalIntervalMs;
   if (failureCount === 2) return Math.max(normalIntervalMs, 15_000);
   return 30_000;

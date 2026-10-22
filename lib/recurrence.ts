@@ -1,3 +1,8 @@
+/**
+ * lib/recurrence.ts
+ *
+ * Purpose: Expands recurring calendar series into dated occurrences and tracks remaining COUNT limits.
+ */
 import { createHash } from "node:crypto";
 import { DateTime } from "luxon";
 import { parseCalendar } from "./ics";

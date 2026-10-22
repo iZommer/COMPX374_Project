@@ -1,4 +1,5 @@
 "use client";
+/** Editor for preferences returned with the public display payload. */
 import { useState } from "react";
 import { api, errorText } from "@/lib/client-api";
 import { localInput } from "@/lib/time";

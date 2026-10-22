@@ -1,4 +1,9 @@
 "use client";
+/**
+ * components/auth-form.tsx
+ *
+ * Purpose: Renders the shared sign-in and registration form and submits credentials through Firebase.
+ */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

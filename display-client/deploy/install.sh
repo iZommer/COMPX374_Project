@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Purpose: Installs the display service, kiosk launcher, and boot-time systemd configuration.
 set -Eeuo pipefail
 
 readonly INSTALL_DIR="/opt/where-is-nic"

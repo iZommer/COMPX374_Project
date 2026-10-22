@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/storage.test.ts
+ *
+ * Purpose: Tests reading and atomic persistence of display configuration and cache files.
+ */
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

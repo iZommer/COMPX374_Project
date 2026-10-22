@@ -1,4 +1,5 @@
 "use client";
+/** Availability editor for profile name, current status, and temporary overrides. */
 import { useState } from "react";
 import { DateTime } from "luxon";
 import { updateProfile } from "firebase/auth";

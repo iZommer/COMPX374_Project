@@ -1,3 +1,8 @@
+/**
+ * display-client/shared/payload.ts
+ *
+ * Purpose: Defines and validates the visitor-facing payload fetched by the local display service.
+ */
 export const availabilityStatuses = [
   "AVAILABLE",
   "IN_A_MEETING",

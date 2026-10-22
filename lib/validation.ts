@@ -1,3 +1,8 @@
+/**
+ * lib/validation.ts
+ *
+ * Purpose: Defines Zod schemas used to validate and normalize API request payloads.
+ */
 import { z } from "zod";
 export const availabilityInput = z
   .object({

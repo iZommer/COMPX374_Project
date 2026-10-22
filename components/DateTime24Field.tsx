@@ -1,4 +1,9 @@
 "use client";
+/**
+ * components/DateTime24Field.tsx
+ *
+ * Purpose: Composes a date and 24-hour time input for calendar forms.
+ */
 
 type DateTime24FieldProps = {
   label?: string;

@@ -1,3 +1,8 @@
+/**
+ * lib/http.ts
+ *
+ * Purpose: Provides shared API response, request parsing, error handling, and bounded-body helpers.
+ */
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 export class HttpError extends Error {

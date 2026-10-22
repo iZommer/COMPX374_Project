@@ -1,4 +1,11 @@
+/**
+ * lib/time.ts
+ *
+ * Purpose: Provides timezone-aware date and time helpers for calendar ranges and form values.
+ */
 import { DateTime } from "luxon";
+// Calendar weeks and floating event times use the university's local timezone,
+// including daylight-saving transitions, rather than the server's timezone.
 export const ZONE = "Pacific/Auckland";
 export function weekRange(date?: string) {
   const day = date

@@ -1,3 +1,4 @@
+/** Authenticated API for preferences consumed by the Raspberry Pi client. */
 import { academicFor } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { body, json, route } from "@/lib/http";
@@ -11,12 +12,14 @@ const settingsInput = z.object({
   dimLevel: z.number().int().min(10).max(100), timeFormat24h: z.boolean(),
 }).strict();
 
+/** Returns saved display settings together with their defaults and update time. */
 export const GET = route(async (req) => {
   const academic = await academicFor(req);
   const settings = await db.displayClientSettings.findUnique({ where: { academicId: academic.id } });
   return json({ ...defaults, ...(settings ?? {}), defaults, appliedAt: settings?.updatedAt ?? null });
 });
 
+/** Validates and persists a complete display-settings update. */
 export const PUT = route(async (req) => {
   const academic = await academicFor(req);
   const data = settingsInput.parse(await body(req));

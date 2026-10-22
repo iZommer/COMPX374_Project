@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/settings.test.ts
+ *
+ * Purpose: Tests merging persisted and runtime display settings.
+ */
 import { describe, expect, it } from "vitest";
 import { isDimmingHour } from "../shared/state.js";
 

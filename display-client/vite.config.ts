@@ -1,3 +1,8 @@
+/**
+ * display-client/vite.config.ts
+ *
+ * Purpose: Configures the browser bundle entry, public assets, and output directory for the display client.
+ */
 import { defineConfig } from "vite";
 
 export default defineConfig({

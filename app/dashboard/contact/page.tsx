@@ -1,4 +1,5 @@
 "use client";
+/** Contact detail editor for information shown to office visitors and the Pi. */
 import { useState } from "react";
 import { api, errorText } from "@/lib/client-api";
 import {

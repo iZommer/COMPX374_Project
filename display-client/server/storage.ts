@@ -1,3 +1,8 @@
+/**
+ * display-client/server/storage.ts
+ *
+ * Purpose: Reads and atomically writes the local display configuration and last-known payload cache.
+ */
 import { mkdir, open, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import type { DiaryPayload } from "../shared/payload.js";
@@ -9,6 +14,8 @@ export interface CacheRecord {
   lastSuccessAt: string;
 }
 
+// Fsync a private temporary file before renaming so readers don't see partial JSON
+// if the process is interrupted while writing the config or cache.
 export async function atomicWriteJson(filePath: string, value: unknown): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;

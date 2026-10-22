@@ -1,3 +1,8 @@
+/**
+ * tests/calendar.test.ts
+ *
+ * Purpose: Tests calendar recurrence and import parsing behavior.
+ */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseCalendar } from "../lib/ics";

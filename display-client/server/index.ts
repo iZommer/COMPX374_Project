@@ -1,3 +1,8 @@
+/**
+ * display-client/server/index.ts
+ *
+ * Purpose: Starts the local Express service, pairs the display, persists settings, and streams state to the browser.
+ */
 import "dotenv/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

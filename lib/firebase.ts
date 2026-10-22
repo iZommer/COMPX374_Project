@@ -1,4 +1,9 @@
 "use client";
+/**
+ * lib/firebase.ts
+ *
+ * Purpose: Initializes the browser Firebase app and provides client authentication access.
+ */
 import { getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 export function clientAuth() {

@@ -1,3 +1,8 @@
+/**
+ * lib/ics.ts
+ *
+ * Purpose: Parses imported iCalendar data and converts supported events into application calendar records.
+ */
 import ICAL from "ical.js";
 import { DateTime } from "luxon";
 import { createHash } from "node:crypto";

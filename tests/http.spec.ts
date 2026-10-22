@@ -1,3 +1,8 @@
+/**
+ * tests/http.spec.ts
+ *
+ * Purpose: Tests shared HTTP response, request parsing, and error-handling helpers.
+ */
 import { expect, it, vi } from "vitest";
 import { route } from "../lib/http";
 

@@ -1,6 +1,8 @@
+/** Root document shell: shared metadata, stylesheet, and authentication context. */
 import type { Metadata } from "next";
 import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
+/** Site-wide document shell: shared styles, page metadata, and Firebase auth context. */
 export const metadata: Metadata = {
   title: "Kei Hea a Nic? | Academic diary",
   description:

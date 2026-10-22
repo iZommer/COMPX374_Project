@@ -1,4 +1,9 @@
 "use client";
+/**
+ * components/ui.tsx
+ *
+ * Purpose: Reusable page headings, notices, and resource-fetching UI primitives used by dashboard pages.
+ */
 import { useEffect, useState } from "react";
 import { api, errorText } from "@/lib/client-api";
 export function PageHeading({

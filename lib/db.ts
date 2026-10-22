@@ -1,3 +1,8 @@
+/**
+ * lib/db.ts
+ *
+ * Purpose: Creates the shared Prisma database client used by server routes.
+ */
 import "server-only";
 import { PrismaClient } from "@prisma/client";
 const globalDb = globalThis as unknown as { prisma?: PrismaClient };

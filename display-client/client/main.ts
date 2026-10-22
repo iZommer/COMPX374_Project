@@ -1,3 +1,8 @@
+/**
+ * display-client/client/main.ts
+ *
+ * Purpose: Renders the touchscreen display, updates connection and status views, and handles local pairing interactions.
+ */
 import QRCode from "qrcode";
 import { layoutWeekEvents } from "../shared/calendar-layout.js";
 import { createVCard, hasContactDetails } from "../shared/vcard.js";
@@ -439,6 +444,8 @@ async function render(next: DisplayState): Promise<void> {
       : `Information may be out of date — last updated ${next.lastSuccessAt ? formatTime(next.lastSuccessAt, next.settings.timezone) : "unknown"}.`;
   }
   const { generatedAt: _transportTimestamp, ...displayData } = next.payload;
+  // generatedAt changes on every poll; ignore it so static views only rerender
+  // for actual data changes. The clock and current-event marker update separately.
   const signature = JSON.stringify(displayData);
   renderTodayCalendar(next.payload, next.settings);
   if (signature !== lastPayloadSignature) {

@@ -1,3 +1,8 @@
+/**
+ * tests/client-api.spec.ts
+ *
+ * Purpose: Tests authenticated browser API request and error handling behavior.
+ */
 import { afterEach, expect, it, vi } from "vitest";
 import { api } from "../lib/client-api";
 

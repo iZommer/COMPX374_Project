@@ -1,3 +1,8 @@
+/**
+ * display-client/mock/server.ts
+ *
+ * Purpose: Runs a local mock diary API for testing the display client without the production service.
+ */
 import express from "express";
 import type { AvailabilityStatus, DiaryPayload } from "../shared/payload.js";
 

@@ -1,3 +1,4 @@
+// Purpose: Defines the relational data models and generated Prisma client configuration used by the server.
 generator client {
   provider = "prisma-client-js"
 }

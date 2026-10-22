@@ -1,3 +1,8 @@
+/**
+ * components/StatusIcon.tsx
+ *
+ * Purpose: Maps display status values to the compact SVG icons used across the dashboard.
+ */
 import type { ReactNode } from "react";
 
 export type StatusIconName = "AVAILABLE" | "IN_A_MEETING" | "TEACHING" | "OUT_OF_OFFICE";

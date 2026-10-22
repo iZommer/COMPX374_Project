@@ -1,4 +1,9 @@
 "use client";
+/**
+ * components/auth-provider.tsx
+ *
+ * Purpose: Provides Firebase authentication state to client-side pages and exposes the useAuth hook.
+ */
 import { createContext, useContext, useEffect, useState } from "react";
 import { onIdTokenChanged, type User } from "firebase/auth";
 import { clientAuth } from "@/lib/firebase";

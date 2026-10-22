@@ -1,4 +1,9 @@
-﻿@tailwind base;
+﻿/* Shared global styles, loaded by the root app layout. */
+/* app/globals.css
+ *
+ * Purpose: Defines global document defaults and shared theme variables used by the application.
+ */
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 

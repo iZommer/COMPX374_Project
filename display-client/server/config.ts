@@ -1,3 +1,8 @@
+/**
+ * display-client/server/config.ts
+ *
+ * Purpose: Loads environment defaults, persisted display configuration, and diary URL validation for the kiosk service.
+ */
 import path from "node:path";
 import type { PublicSettings } from "../shared/state.js";
 

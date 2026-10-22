@@ -1,8 +1,10 @@
+/** Authenticated `.ics` import endpoint; bounds request size and expansion work. */
 import { academicFor } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { HttpError, json, limitedText, route } from "@/lib/http";
 import { parseCalendar } from "@/lib/ics";
 export const maxDuration = 15;
+/** Parses and imports calendar events, skipping already imported occurrences. */
 export const POST = route(async (req) => {
   const a = await academicFor(req);
   if (!req.headers.get("content-type")?.startsWith("text/calendar"))

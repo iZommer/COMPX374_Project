@@ -1,3 +1,8 @@
+/**
+ * components/app-header.tsx
+ *
+ * Purpose: Renders the shared navigation header for login and authenticated dashboard views.
+ */
 import Link from "next/link";
 
 export function AppHeader({ variant = "dashboard" }: { variant?: "dashboard" | "login" }) {

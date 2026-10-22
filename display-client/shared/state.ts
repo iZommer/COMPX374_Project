@@ -1,3 +1,8 @@
+/**
+ * display-client/shared/state.ts
+ *
+ * Purpose: Defines display connection and presentation state plus shared time-based status helpers.
+ */
 import type { DiaryPayload } from "./payload.js";
 
 export type ConnectionState = "online" | "offline" | "invalid-key";

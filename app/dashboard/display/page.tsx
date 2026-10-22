@@ -1,4 +1,5 @@
 "use client";
+/** Display pairing page for viewing, rotating, and pairing the kiosk credential. */
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { api, errorText } from "@/lib/client-api";

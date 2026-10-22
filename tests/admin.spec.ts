@@ -1,3 +1,8 @@
+/**
+ * tests/admin.spec.ts
+ *
+ * Purpose: Tests Firebase Admin credential and token-verification helpers.
+ */
 import { generateKeyPairSync } from "node:crypto";
 import { afterEach, expect, it, vi } from "vitest";
 import { adminCredentials } from "../lib/admin";

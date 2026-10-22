@@ -1,3 +1,8 @@
+/**
+ * display-client/shared/vcard.ts
+ *
+ * Purpose: Builds downloadable vCard contact data for the display interface.
+ */
 import type { ContactInfo } from "./payload.js";
 
 const escapeValue = (value: string) =>

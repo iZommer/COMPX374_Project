@@ -1,3 +1,8 @@
+/**
+ * display-client/client/styles.css
+ *
+ * Purpose: Defines kiosk-specific layout, status, calendar, and touchscreen presentation styles.
+ */
 :root {
   --ink: #102a43;
   --muted: #52667a;

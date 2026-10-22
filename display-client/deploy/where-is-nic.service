@@ -1,3 +1,4 @@
+# Runs the local display service after network connectivity is available.
 [Unit]
 Description=Where Is Nic Digital Office Display
 After=network-online.target

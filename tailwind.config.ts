@@ -1,3 +1,8 @@
+/**
+ * tailwind.config.ts
+ *
+ * Purpose: Defines the source files and theme extensions used to generate application utility styles.
+ */
 import type { Config } from "tailwindcss";
 export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],

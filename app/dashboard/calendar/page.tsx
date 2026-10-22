@@ -1,4 +1,5 @@
 "use client";
+/** Weekly calendar editor, including recurring events and iCalendar imports. */
 import { useRef, useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import { api, errorText } from "@/lib/client-api";

@@ -1,3 +1,8 @@
+/**
+ * display-client/shared/calendar-layout.ts
+ *
+ * Purpose: Places calendar events into day columns and overlap lanes for the weekly display.
+ */
 import type { CalendarEvent } from "./payload.js";
 
 export interface EventSegment {

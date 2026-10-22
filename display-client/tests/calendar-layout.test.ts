@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/calendar-layout.test.ts
+ *
+ * Purpose: Tests weekly event positioning, overlap lanes, and day-boundary handling.
+ */
 import { describe, expect, it } from "vitest";
 import { layoutWeekEvents } from "../shared/calendar-layout.js";
 

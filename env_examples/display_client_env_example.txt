@@ -31,8 +31,11 @@ STALE_AFTER_HOURS="24"
 # Enable subtle periodic pixel shifting to reduce burn-in
 PIXEL_SHIFT_ENABLED="true"
 
-# Local hour at which overnight dimming starts (empty disables it)
+# Local hour at which overnight dimming starts (0-23; empty uses default 19)
 DIM_START_HOUR="22"
 
-# Local hour at which overnight dimming ends
+# Local hour at which overnight dimming ends (0-23; empty uses default 7)
 DIM_END_HOUR="7"
+
+# Brightness percentage during the dimming window (10-100)
+DIM_LEVEL="55"

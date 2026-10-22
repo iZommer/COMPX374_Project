@@ -1,3 +1,8 @@
+/**
+ * next.config.ts
+ *
+ * Purpose: Configures security-related response headers for the Next.js application.
+ */
 import type { NextConfig } from "next";
 const config: NextConfig = {
   poweredByHeader: false,

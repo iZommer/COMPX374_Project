@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/vcard.test.ts
+ *
+ * Purpose: Tests contact-detail detection and vCard output formatting.
+ */
 import { expect, it } from "vitest";
 import { createVCard, hasContactDetails } from "../shared/vcard.js";
 

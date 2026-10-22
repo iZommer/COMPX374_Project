@@ -1,4 +1,5 @@
 "use client";
+/** Authenticated dashboard shell with navigation, sign-out, and route protection. */
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

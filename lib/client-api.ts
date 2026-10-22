@@ -1,4 +1,9 @@
 "use client";
+/**
+ * lib/client-api.ts
+ *
+ * Purpose: Wraps authenticated browser API calls with timeout and consistent error handling.
+ */
 import { clientAuth } from "./firebase";
 export async function api<T>(
   path: string,

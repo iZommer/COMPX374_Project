@@ -1,3 +1,8 @@
+/**
+ * display-client/tests/poller.test.ts
+ *
+ * Purpose: Tests remote payload fetching, polling cadence, and retry backoff.
+ */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { backoffDelay, Poller } from "../server/poller.js";
 import { validPayload } from "./fixtures.js";

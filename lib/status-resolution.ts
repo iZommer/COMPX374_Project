@@ -1,3 +1,8 @@
+/**
+ * lib/status-resolution.ts
+ *
+ * Purpose: Maps resolved availability and calendar data to the status presentation shown by the application.
+ */
 export type ResolvableStatus = "AVAILABLE" | "IN_A_MEETING" | "TEACHING" | "OUT_OF_OFFICE";
 export const statusPresentation = {
   AVAILABLE: { label: "Available" },
@@ -5,6 +10,7 @@ export const statusPresentation = {
   TEACHING: { label: "Teaching" },
   OUT_OF_OFFICE: { label: "Out of office" },
 } as const;
+// Resolve status in one place so dashboard reads and the display payload use the same precedence.
 export function resolveStatus(input: {
   now: Date;
   overrideStatus?: ResolvableStatus | null;
