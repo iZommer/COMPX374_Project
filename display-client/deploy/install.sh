@@ -144,6 +144,7 @@ npm ci --no-audit --no-fund
 npm run build
 npm prune --omit=dev --no-audit --no-fund
 [[ -f "$INSTALL_DIR/dist/index.html" && -f "$INSTALL_DIR/dist-node/server/index.js" ]] || fail "production build output is missing"
+[[ -f "$INSTALL_DIR/dist/logos/uow-logo.png" ]] || fail "the Waikato logo is missing from the display build"
 
 install -o root -g root -m 0644 "$INSTALL_DIR/deploy/where-is-nic.service" "$SERVER_UNIT"
 
