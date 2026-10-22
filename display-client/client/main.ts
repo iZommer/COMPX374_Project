@@ -161,6 +161,33 @@ function wireCalendarGestures(): void {
   document.addEventListener("touchcancel", endTouchGesture, { capture: true, passive: true });
 }
 
+function wireTodayScheduleGestures(): void {
+  const schedule = $(".today-calendar");
+  const pointers = new Map<number, number>();
+  const pointIsInSchedule = (x: number, y: number) => {
+    const bounds = schedule.getBoundingClientRect();
+    return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+  };
+
+  document.addEventListener("pointerdown", (event) => {
+    if (!pointIsInSchedule(event.clientX, event.clientY)) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (pointers.size > 0) return;
+    pointers.set(event.pointerId, event.clientY);
+    resetIdleTimer();
+  }, { capture: true });
+  document.addEventListener("pointermove", (event) => {
+    const previousY = pointers.get(event.pointerId);
+    if (previousY === undefined) return;
+    event.preventDefault();
+    schedule.scrollTop -= event.clientY - previousY;
+    pointers.set(event.pointerId, event.clientY);
+  }, { capture: true });
+  const endGesture = (event: PointerEvent) => pointers.delete(event.pointerId);
+  document.addEventListener("pointerup", endGesture, { capture: true });
+  document.addEventListener("pointercancel", endGesture, { capture: true });
+}
+
 function showScreen(name: keyof typeof screens): void {
   for (const [key, element] of Object.entries(screens)) element.hidden = key !== name;
 }
@@ -262,7 +289,8 @@ function renderTodayCalendar(payload: DiaryPayload, settings: PublicSettings): v
   ).sort((a, b) => Date.parse(a.startTime) - Date.parse(b.startTime));
   $("#today-date").textContent = formatDate(now, settings.timezone);
   const list = $("#today-events");
-  const scrollTop = list.scrollTop;
+  const schedule = $(".today-calendar");
+  const scrollTop = schedule.scrollTop;
   list.replaceChildren();
   $("#today-empty").hidden = events.length > 0;
   list.hidden = events.length === 0;
@@ -287,7 +315,7 @@ function renderTodayCalendar(payload: DiaryPayload, settings: PublicSettings): v
     }
     list.append(item);
   }
-  list.scrollTop = scrollTop;
+  schedule.scrollTop = scrollTop;
 }
 
 function renderCalendar(payload: DiaryPayload, settings: PublicSettings): void {
@@ -516,6 +544,7 @@ function wireInteractions(): void {
     resetIdleTimer();
   });
   wireCalendarGestures();
+  wireTodayScheduleGestures();
 
   $("#setup-form").addEventListener("submit", async (event) => {
     event.preventDefault();

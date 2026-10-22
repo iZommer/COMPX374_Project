@@ -91,7 +91,8 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .status-away { --status-color: var(--status-away); }
 .status-unknown { --status-color: #52667a; }
 .status-label { margin: .2rem 0; font-size: clamp(3rem, 8vw, 9rem); font-weight: 900; line-height: 1.05; letter-spacing: -.04em; }
-.today-calendar { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: clamp(.75rem, 1.5vw, 1.5rem); border: 2px solid var(--line); border-radius: 1rem; background: var(--surface); overflow-y: auto; overscroll-behavior-y: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: auto; scrollbar-color: transparent transparent; }
+.today-calendar { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: clamp(.75rem, 1.5vw, 1.5rem); border: 2px solid var(--line); border-radius: 1rem; background: var(--surface); overflow-y: auto; overscroll-behavior-y: contain; touch-action: none; -webkit-overflow-scrolling: touch; scrollbar-width: auto; scrollbar-color: transparent transparent; cursor: grab; }
+.today-calendar:active { cursor: grabbing; }
 .today-calendar::-webkit-scrollbar { width: 28px; }
 .today-calendar::-webkit-scrollbar-track, .today-calendar::-webkit-scrollbar-thumb { background: transparent; }
 .today-heading { flex-shrink: 0; padding-bottom: .8rem; border-bottom: 1px solid var(--line); }
