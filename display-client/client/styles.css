@@ -91,13 +91,13 @@ input:focus, select:focus, button:focus-visible { outline: 4px solid #00a6b4; ou
 .status-away { --status-color: var(--status-away); }
 .status-unknown { --status-color: #52667a; }
 .status-label { margin: .2rem 0; font-size: clamp(3rem, 8vw, 9rem); font-weight: 900; line-height: 1.05; letter-spacing: -.04em; }
-.today-calendar { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: clamp(.75rem, 1.5vw, 1.5rem); border: 2px solid var(--line); border-radius: 1rem; background: var(--surface); }
+.today-calendar { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: clamp(.75rem, 1.5vw, 1.5rem); border: 2px solid var(--line); border-radius: 1rem; background: var(--surface); overflow-y: auto; overscroll-behavior-y: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: auto; scrollbar-color: transparent transparent; }
+.today-calendar::-webkit-scrollbar { width: 28px; }
+.today-calendar::-webkit-scrollbar-track, .today-calendar::-webkit-scrollbar-thumb { background: transparent; }
 .today-heading { flex-shrink: 0; padding-bottom: .8rem; border-bottom: 1px solid var(--line); }
 .today-heading h2 { margin: .15rem 0; font-size: clamp(1.5rem, 2.8vw, 2.5rem); }
 .today-heading > p:last-child { margin: 0; color: var(--muted); font-size: .9rem; }
-.today-events { min-height: 0; margin: 1rem 0 0; padding: 0; list-style: none; overflow-y: auto; overscroll-behavior-y: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: auto; scrollbar-color: transparent transparent; }
-.today-events::-webkit-scrollbar { width: 28px; }
-.today-events::-webkit-scrollbar-track, .today-events::-webkit-scrollbar-thumb { background: transparent; }
+.today-events { min-height: 0; flex-shrink: 0; margin: 1rem 0 0; padding: 0; list-style: none; }
 .today-event { padding: .85rem; margin-bottom: .75rem; border-left: 3px solid var(--line); border-radius: .35rem; background: #f8faf9; overflow-wrap: anywhere; }
 .today-event.event-status-available { border-left-color: var(--status-available); background: var(--status-available-tint); }
 .today-event.event-status-in_a_meeting { border-left-color: var(--status-meeting); background: var(--status-meeting-tint); }
